@@ -308,10 +308,17 @@
 	color: var(--ink-2);
 	font-weight: 550;
 	cursor: pointer;
+	transition: background 0.18s ease, color 0.18s ease, transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .filter-tab:hover {
 	color: var(--ink);
+	background: var(--hover);
+	transform: translateY(-1px);
+}
+
+.filter-tab:active {
+	transform: translateY(0) scale(0.98);
 }
 
 .filter-tab[aria-selected='true'] {

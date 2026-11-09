@@ -1,5 +1,16 @@
 /* ── Home: hero, address box, categories ────────────────────────────────── */
 
+@keyframes homeFadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(18px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 .home {
 	display: flex;
 	flex-direction: column;
@@ -17,12 +28,17 @@
 	text-align: center;
 }
 
+.home-hero .eyebrow {
+	animation: homeFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .home-hero h1 {
 	max-width: 760px;
 	font-size: clamp(36px, 6vw, 64px);
 	font-weight: 700;
 	letter-spacing: -0.045em;
 	line-height: 1.02;
+	animation: homeFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
 }
 
 .home-lede {
@@ -30,6 +46,7 @@
 	color: var(--ink-2);
 	font-size: 17px;
 	line-height: 1.55;
+	animation: homeFadeUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.14s both;
 }
 
 .composer {
@@ -45,11 +62,33 @@
 	background: var(--surface);
 	box-shadow: var(--shadow-pop);
 	text-align: left;
-	transition: border-color 0.2s;
+	animation: homeFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+	transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+		box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+		border-color 0.2s ease;
+}
+
+.composer:hover {
+	box-shadow: 0 20px 48px -14px rgb(11 18 32 / 0.32), 0 4px 14px rgb(11 18 32 / 0.1);
 }
 
 .composer:focus-within {
 	border-color: var(--ink);
+	transform: translateY(-2px);
+	box-shadow: 0 22px 52px -12px rgb(11 18 32 / 0.36), 0 5px 16px rgb(11 18 32 / 0.12);
+}
+
+.composer .button--accent {
+	transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+		background 0.18s ease;
+}
+
+.composer .button--accent:hover {
+	transform: translateY(-1px) scale(1.02);
+}
+
+.composer .button--accent:active {
+	transform: translateY(0) scale(0.98);
 }
 
 .composer-field {
@@ -136,6 +175,37 @@ a.composer-hint:hover {
 	border: 1px solid var(--line);
 	border-radius: var(--radius-lg);
 	background: var(--surface-2);
+	animation: homeFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+	transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+		box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+		border-color 0.2s ease,
+		background 0.2s ease;
+}
+
+/* Stagger card cascaded entrance */
+.category-card:nth-child(1) { animation-delay: 0.18s; }
+.category-card:nth-child(2) { animation-delay: 0.22s; }
+.category-card:nth-child(3) { animation-delay: 0.26s; }
+.category-card:nth-child(4) { animation-delay: 0.30s; }
+.category-card:nth-child(5) { animation-delay: 0.34s; }
+.category-card:nth-child(6) { animation-delay: 0.38s; }
+.category-card:nth-child(7) { animation-delay: 0.42s; }
+.category-card:nth-child(8) { animation-delay: 0.46s; }
+.category-card:nth-child(9) { animation-delay: 0.50s; }
+
+.category-card:hover {
+	transform: translateY(-3px);
+	background: var(--surface);
+	border-color: var(--line-strong);
+	box-shadow: 0 12px 28px -10px rgb(11 18 32 / 0.14), var(--shadow-card);
+}
+
+.category-card .category-tile {
+	transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.category-card:hover .category-tile {
+	transform: scale(1.1) rotate(3deg);
 }
 
 .category-card h3 {
@@ -152,6 +222,12 @@ a.composer-hint:hover {
 	margin-left: auto;
 	color: var(--ink-3);
 	font-size: 12px;
+	transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.category-card:hover .category-card-weight {
+	color: var(--ink);
+	transform: scale(1.05);
 }
 
 .report-list {
@@ -175,36 +251,21 @@ a.composer-hint:hover {
 	gap: 14px;
 	padding: 12px 16px;
 	text-decoration: none;
-	transition: background 0.15s;
+	transition: background 0.18s ease,
+		transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .report-list-item:hover {
 	background: var(--hover);
+	transform: translateX(4px);
 }
 
-.report-list-text {
-	display: flex;
-	flex: 1;
-	min-width: 0;
-	flex-direction: column;
-}
-
-.report-list-text strong,
-.report-list-text span {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.report-list-text .mono {
-	font-size: 12.5px;
-}
-
-.report-list-time {
-	font-size: 12.5px;
-	white-space: nowrap;
-}
-
-.report-list-chevron {
+.report-list-item .report-list-chevron {
 	color: var(--ink-3);
+	transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.report-list-item:hover .report-list-chevron {
+	color: var(--ink);
+	transform: translateX(3px);
 }
