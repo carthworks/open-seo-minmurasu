@@ -7,6 +7,7 @@ import { BrandMark } from '@web/components/brand-mark'
 import { Button } from '@web/components/button'
 import { Icon } from '@web/components/icon'
 import { postForEvents } from '@web/lib/stream'
+import { VibecodeModal } from '../vibecode-modal'
 import type { ReportTopBarProps } from './report-top-bar.types'
 
 /** The floating bar over a report: brand, the audited site and the report's actions. */
@@ -17,6 +18,7 @@ const ReportTopBar = (props: ReportTopBarProps) => {
 	const [copied, setCopied] = useState(false)
 	const [rerunning, setRerunning] = useState<string | null>(null)
 	const [error, setError] = useState<string | null>(null)
+	const [showPromptModal, setShowPromptModal] = useState(false)
 
 	const handleCopyClick = async () => {
 		await navigator.clipboard.writeText(window.location.href)
@@ -82,11 +84,25 @@ const ReportTopBar = (props: ReportTopBarProps) => {
 					<Icon name="refresh" size={15} />
 					<span className="top-bar-label">{rerunning ?? 'Run again'}</span>
 				</Button>
+				<Button
+					small
+					variant="accent"
+					title="Open ready-to-use AI VibeCode Prompt to fix all issues"
+					onClick={() => setShowPromptModal(true)}
+				>
+					<Icon name="code" size={15} />
+					<span className="top-bar-label">✨ VibeCode Prompt</span>
+				</Button>
 				<Button small variant="primary" title="Save as PDF" onClick={() => window.print()}>
 					<Icon name="printer" size={15} />
 					Save PDF
 				</Button>
 			</div>
+			<VibecodeModal
+				report={report}
+				open={showPromptModal}
+				onClose={() => setShowPromptModal(false)}
+			/>
 		</header>
 	)
 }
