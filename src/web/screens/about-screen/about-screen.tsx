@@ -165,23 +165,23 @@ const AboutScreen = (props: AboutScreenProps) => {
 				<div className="about-info-panel">
 					<div className="about-info-row">
 						<div>
-							<strong>Nine Diagnostic Areas</strong>
+							<strong>Ten Diagnostic Areas</strong>
 							<p className="muted">
 								On-page SEO, Performance, Usability, Security, Links, Social, AI Search, Local SEO,
-								and Accessibility (WCAG).
+								Accessibility (WCAG), and Trust &amp; E-E-A-T.
 							</p>
 						</div>
-						<span className="about-badge mono">9 Areas</span>
+						<span className="about-badge mono">10 Areas</span>
 					</div>
 					<div className="about-info-row">
 						<div>
 							<strong>Comprehensive Ruleset</strong>
 							<p className="muted">
-								77 automated checks inspect everything from schema markup and robots directives to
-								response latency and ARIA landmarks.
+								81 automated checks inspect everything from schema markup and robots directives to
+								response latency, ARIA landmarks, and trust credentials.
 							</p>
 						</div>
-						<span className="about-badge mono">77 Checks</span>
+						<span className="about-badge mono">81 Checks</span>
 					</div>
 					<div className="about-info-row">
 						<div>
