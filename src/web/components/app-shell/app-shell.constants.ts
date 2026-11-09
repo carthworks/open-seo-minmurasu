@@ -19,7 +19,10 @@ export const NAV: NavGroup[] = [
 	},
 	{
 		title: 'Workspace',
-		items: [{ href: '/settings', label: 'Settings', icon: 'settings' }]
+		items: [
+			{ href: '/about', label: 'About us', icon: 'info' },
+			{ href: '/settings', label: 'Settings', icon: 'settings' }
+		]
 	}
 ]
 

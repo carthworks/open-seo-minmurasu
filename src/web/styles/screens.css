@@ -517,3 +517,179 @@
 		align-items: stretch;
 	}
 }
+
+/* ── About Screen ────────────────────────────────────────────────────────── */
+
+.about-screen {
+	gap: 22px;
+}
+
+.about-hero-card {
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+}
+
+.about-hero-banner {
+	width: 100%;
+	height: 180px;
+	background: var(--surface-2);
+	overflow: hidden;
+}
+
+.about-hero-banner-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.about-hero-content {
+	padding: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.about-hero-header {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.about-hero-logo {
+	width: 58px;
+	height: 58px;
+	object-fit: contain;
+	border-radius: var(--radius-sm);
+	background: var(--surface-2);
+	padding: 5px;
+	border: 1px solid var(--line);
+}
+
+.about-hero-titles h2 {
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--ink);
+}
+
+.about-hero-tagline {
+	margin-top: 2px;
+	font-size: 13.5px;
+	color: var(--ink-3);
+}
+
+.about-hero-bio {
+	font-size: 14.5px;
+	line-height: 1.6;
+	color: var(--ink-2);
+}
+
+.about-contact-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	padding-top: 4px;
+}
+
+.about-section {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.about-section-head h2 {
+	font-size: 18px;
+	color: var(--ink);
+}
+
+.about-services-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 14px;
+}
+
+.about-service-card {
+	display: flex;
+	gap: 14px;
+	padding: 16px;
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-md);
+}
+
+.about-service-icon {
+	width: 38px;
+	height: 38px;
+	border-radius: var(--radius-sm);
+	background: var(--surface-2);
+	display: grid;
+	place-items: center;
+	color: var(--accent);
+	flex-shrink: 0;
+}
+
+.about-service-card h3 {
+	font-size: 14.5px;
+	font-weight: 600;
+	margin-bottom: 4px;
+	color: var(--ink);
+}
+
+.about-service-card p {
+	font-size: 13px;
+	color: var(--ink-3);
+	line-height: 1.45;
+}
+
+.about-info-panel {
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-md);
+	overflow: hidden;
+}
+
+.about-info-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--line);
+}
+
+.about-info-row:last-child {
+	border-bottom: none;
+}
+
+.about-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 10px;
+	border-radius: var(--radius-pill);
+	background: var(--surface-2);
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--ink-2);
+	white-space: nowrap;
+}
+
+.about-footer-card {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 20px;
+	background: var(--surface-2);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-md);
+	margin-top: 6px;
+}
+
+.about-footer-buttons {
+	display: flex;
+	gap: 10px;
+}
+

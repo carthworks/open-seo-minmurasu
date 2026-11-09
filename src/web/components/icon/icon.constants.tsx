@@ -17,7 +17,12 @@ export const PATHS = {
 	close: <path d="m5.5 5.5 9 9M14.5 5.5l-9 9" />,
 	check: <path d="m4.75 10.5 3.25 3.25 7.25-7.5" />,
 	alert: <path d="M10 5.25v5.75M10 14.5v.25" strokeWidth={2} />,
-	info: <path d="M10 9v5.25M10 5.75V6" strokeWidth={2} />,
+	info: (
+		<>
+			<circle cx="10" cy="10" r="6.75" />
+			<path d="M10 9v4.25M10 6.25v.25" strokeWidth={2} />
+		</>
+	),
 	dash: <path d="M6 10h8" strokeWidth={2} />,
 	arrowRight: <path d="M4 10h12M11 5l5 5-5 5" />,
 	arrowUp: <path d="M10 16V4.5M5 9.5l5-5 5 5" />,
