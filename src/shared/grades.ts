@@ -13,25 +13,25 @@ export const CATEGORIES: CategoryInfo[] = [
 		id: 'onpage',
 		name: 'On-page SEO',
 		description: 'What search engines read: titles, headings, content and markup.',
-		weight: 24
+		weight: 22
 	},
 	{
 		id: 'performance',
 		name: 'Performance',
 		description: 'How quickly the page arrives and how heavy it is.',
-		weight: 16
+		weight: 15
 	},
 	{
 		id: 'usability',
 		name: 'Usability',
 		description: 'How the page works on phones and for everyone using it.',
-		weight: 11
+		weight: 10
 	},
 	{
 		id: 'security',
 		name: 'Security',
 		description: 'HTTPS, certificates, headers and email authentication.',
-		weight: 11
+		weight: 10
 	},
 	{
 		id: 'links',
@@ -55,12 +55,18 @@ export const CATEGORIES: CategoryInfo[] = [
 		id: 'local',
 		name: 'Local SEO',
 		description: 'Whether local customers and map searches find your business: schemas, NAP and maps.',
-		weight: 7
+		weight: 6
 	},
 	{
 		id: 'accessibility',
 		name: 'Accessibility',
 		description: 'How easily people of all abilities and assistive tech can navigate the page.',
+		weight: 6
+	},
+	{
+		id: 'trust',
+		name: 'Trust & E-E-A-T',
+		description: 'Author credentials, business legitimacy, policies, terms, and copyright transparency.',
 		weight: 6
 	}
 ]

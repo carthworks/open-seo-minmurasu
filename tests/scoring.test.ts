@@ -35,8 +35,8 @@ describe('scoreCategories', () => {
 describe('overallScore', () => {
 	it('weighs categories by importance', () => {
 		const categories = scoreCategories([check({ status: 'fail', category: 'onpage' })])
-		// On-page is 24% of the score; every other category is perfect.
-		expect(overallScore(categories)).toBe(76)
+		// On-page is 22% of the score; every other category is perfect.
+		expect(overallScore(categories)).toBe(78)
 	})
 })
 

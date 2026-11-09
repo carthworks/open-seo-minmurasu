@@ -14,6 +14,7 @@ export type CategoryId =
 	| 'ai'
 	| 'local'
 	| 'accessibility'
+	| 'trust'
 
 /** Structured evidence for a check, rendered by the report's detail blocks. */
 export type Detail =

@@ -14,15 +14,28 @@ export const NAV: NavGroup[] = [
 		title: 'Site',
 		items: [
 			{ href: '/crawls', label: 'Crawler', icon: 'crawl' },
+			{ href: '/sitemap', label: 'Sitemap', icon: 'sitemap' },
 			{ href: '/monitors', label: 'Monitors', icon: 'bell' }
 		]
 	},
 	{
-		title: 'Workspace',
+		title: 'Tools',
 		items: [
-			{ href: '/about', label: 'About us', icon: 'info' },
-			{ href: '/settings', label: 'Settings', icon: 'settings' }
+			{ href: '/tools', label: 'SEO Utilities', icon: 'tools' },
+			{ href: '/checklist', label: 'SEO Checklist', icon: 'checklist' }
 		]
+	},
+	{
+		title: 'Agency',
+		items: [
+			{ href: '/services', label: 'Services', icon: 'sparkline' },
+			{ href: '/contact', label: 'Contact', icon: 'mail' },
+			{ href: '/about', label: 'About us', icon: 'info' }
+		]
+	},
+	{
+		title: 'Workspace',
+		items: [{ href: '/settings', label: 'Settings', icon: 'settings' }]
 	}
 ]
 

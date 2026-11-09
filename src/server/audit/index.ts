@@ -9,6 +9,7 @@ import { onPageChecks } from './checks/onpage'
 import { estimatedLoadMs, pageWeight, performanceChecks } from './checks/performance'
 import { securityChecks } from './checks/security'
 import { socialChecks } from './checks/social'
+import { trustChecks } from './checks/trust'
 import { usabilityChecks } from './checks/usability'
 import type { AuditContext } from './context'
 import { fetchPage } from './fetch-page'
@@ -85,7 +86,8 @@ export async function runAudit(input: string, options: AuditOptions = {}): Promi
 		...securityChecks(ctx),
 		...aiChecks(ctx),
 		...localChecks(ctx),
-		...accessibilityChecks(ctx)
+		...accessibilityChecks(ctx),
+		...trustChecks(ctx)
 	]
 	const categories = scoreCategories(checks)
 	const score = overallScore(categories)

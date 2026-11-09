@@ -192,6 +192,7 @@ a.composer-hint:hover {
 .category-card:nth-child(7) { animation-delay: 0.42s; }
 .category-card:nth-child(8) { animation-delay: 0.46s; }
 .category-card:nth-child(9) { animation-delay: 0.50s; }
+.category-card:nth-child(10) { animation-delay: 0.54s; }
 
 .category-card:hover {
 	transform: translateY(-3px);

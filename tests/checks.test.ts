@@ -6,6 +6,7 @@ import { localChecks } from '@server/audit/checks/local'
 import { onPageChecks } from '@server/audit/checks/onpage'
 import { securityChecks } from '@server/audit/checks/security'
 import { socialChecks } from '@server/audit/checks/social'
+import { trustChecks } from '@server/audit/checks/trust'
 import { usabilityChecks } from '@server/audit/checks/usability'
 import type { AuditContext, Gathered, ParsedPage } from '@server/audit/context'
 import type { SafeFetchResult } from '@server/audit/http'
@@ -441,5 +442,25 @@ describe('accessibility (WCAG) checks', () => {
 		expect(find(results, 'a11y-form-labels').status).toBe('fail')
 		expect(find(results, 'a11y-controls').status).toBe('warn')
 		expect(find(results, 'a11y-landmarks').status).toBe('warn')
+	})
+
+	it('evaluates trust and E-E-A-T signals (policies, about, author, copyright)', () => {
+		const html = `<!doctype html><html><head>
+			<meta name="author" content="Dr. John Doe" />
+		</head><body>
+			<header><a href="/about-us">About Us</a><a href="/contact">Contact</a></header>
+			<main><p>Content text</p></main>
+			<footer>
+				<a href="/privacy-policy">Privacy Policy</a>
+				<a href="/terms-of-service">Terms of Service</a>
+				<p>© 2026 Example Corp. All rights reserved.</p>
+			</footer>
+		</body></html>`
+		const ctx = contextFor(html)
+		const results = trustChecks(ctx)
+		expect(find(results, 'trust-author').status).toBe('pass')
+		expect(find(results, 'trust-policies').status).toBe('pass')
+		expect(find(results, 'trust-contact-about').status).toBe('pass')
+		expect(find(results, 'trust-copyright').status).toBe('pass')
 	})
 })

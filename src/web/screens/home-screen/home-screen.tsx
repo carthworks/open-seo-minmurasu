@@ -12,20 +12,20 @@ const HomeScreen = (props: HomeScreenProps) => {
 	return (
 		<div className="home">
 			<section className="home-hero">
-				<span className="eyebrow">{brandName} · Powered by OpenSEO · 77 checks</span>
+				<span className="eyebrow">{brandName} · Powered by OpenSEO · 81 checks</span>
 				<h1>
 					Find what&apos;s <span className="highlight">holding your site</span> back
 				</h1>
 				<p className="home-lede">
 					Paste a URL. {brandName} uses OpenSEO to grade on-page SEO, speed, links, mobile,
-					security, AI search, local SEO and accessibility, then tells you what to fix first.
+					security, AI search, local SEO, accessibility and trust &amp; E-E-A-T, then tells you what to fix first.
 				</p>
 				<AuditForm pagespeedEnabled={pagespeedEnabled} />
 			</section>
 
 			<section className="home-section" aria-labelledby="checks-title">
 				<div className="home-section-head">
-					<h2 id="checks-title">Nine areas, one grade</h2>
+					<h2 id="checks-title">Ten areas, one grade</h2>
 					<p className="muted">
 						Each area gets its own score, weighted by how much it matters for search.
 					</p>

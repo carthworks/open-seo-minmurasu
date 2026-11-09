@@ -164,5 +164,33 @@ export const PATHS = {
 	),
 	play: <path d="M7 5.25v9.5L14.75 10Z" />,
 	pause: <path d="M7.5 5.5v9M12.5 5.5v9" strokeWidth={2} />,
-	sparkline: <path d="M3 14.5 7 9.5l3 3 3-6 4 4.5" />
+	sparkline: <path d="M3 14.5 7 9.5l3 3 3-6 4 4.5" />,
+	trust: (
+		<>
+			<circle cx="10" cy="7.75" r="5.25" />
+			<path d="m7.75 7.75 1.5 1.5 3-3" />
+			<path d="M7 12.5 5.5 17l4.5-1.5L14.5 17 13 12.5" />
+		</>
+	),
+	tools: (
+		<>
+			<path d="M14.7 6.3a2.5 2.5 0 0 0-3.5 0L4 13.5l2.5 2.5 7.2-7.2a2.5 2.5 0 0 0 0-3.5Z" />
+			<path d="M13 8 9.5 4.5" />
+		</>
+	),
+	checklist: (
+		<>
+			<path d="M3.5 6.5h1.5M3.5 11h1.5M3.5 15.5h1.5" strokeWidth={2} />
+			<path d="M8 6.5h8.5M8 11h8.5M8 15.5h8.5" />
+		</>
+	),
+	sitemap: (
+		<>
+			<rect x="7.5" y="2.5" width="5" height="4" rx="1" />
+			<rect x="2.5" y="13.5" width="4.5" height="4" rx="1" />
+			<rect x="7.75" y="13.5" width="4.5" height="4" rx="1" />
+			<rect x="13" y="13.5" width="4.5" height="4" rx="1" />
+			<path d="M10 6.5V10M4.75 13.5V10h10.5v3.5M10 10v3.5" />
+		</>
+	)
 }
