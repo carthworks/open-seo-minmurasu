@@ -1,0 +1,66 @@
+{
+	"name": "open-seo-minmurasu",
+	"productName": "OpenSEO-Minmurasu",
+	"version": "0.3.0",
+	"description": "An open-source SEO audit tool by MIN MURASU: graded website reports across 9 areas, site crawler, PDF reports, social previews, and local SEO analysis.",
+	"author": "MIN MURASU <minmurasu.digital@gmail.com>",
+	"homepage": "https://www.minmurasu.digital/",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/alexsilver8/open-seo.git"
+	},
+	"bugs": "https://www.minmurasu.digital/",
+	"keywords": [
+		"seo",
+		"seo-audit",
+		"website-audit",
+		"site-crawler",
+		"lighthouse",
+		"nextjs",
+		"self-hosted",
+		"minmurasu",
+		"local-seo",
+		"accessibility",
+		"wcag"
+	],
+	"license": "MIT",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"typecheck": "next typegen && tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"format": "prettier --write .",
+		"cleaner": "node scripts/cleaner.mjs",
+		"lint": "node scripts/cleaner.mjs",
+		"scan": "tsx scripts/scan.ts",
+		"crawl": "tsx scripts/crawl.ts",
+		"check": "tsx scripts/check.ts"
+	},
+	"engines": {
+		"node": ">=22.12"
+	},
+	"packageManager": "pnpm@12.10.1",
+	"dependencies": {
+		"@fontsource-variable/bricolage-grotesque": "^5.3.0",
+		"@fontsource-variable/instrument-sans": "^5.3.0",
+		"@fontsource/ibm-plex-mono": "^5.3.0",
+		"cheerio": "^1.2.0",
+		"next": "16.4.5",
+		"nodemailer": "^10.0.16",
+		"react": "^19.3.0",
+		"react-dom": "^19.3.0"
+	},
+	"devDependencies": {
+		"@types/node": "^24.19.1",
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"picocolors": "^1.1.1",
+		"prettier": "^3.9.9",
+		"tsx": "^4.23.15",
+		"typescript": "^6.0.3",
+		"vitest": "~5.0.3"
+	}
+}

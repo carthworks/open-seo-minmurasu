@@ -1,0 +1,25 @@
+# MIN MURASU
+
+> Turn Digital Attention Into Business Growth. Digital marketing, websites, AI automation, and comprehensive SEO auditing.
+
+MIN MURASU is a full-service digital agency providing high-impact digital marketing campaigns, modern website development, AI-driven automation workflows, and automated SEO auditing.
+
+## Contact Information
+- Website: https://www.minmurasu.digital/
+- Phone: +91 9486772206
+- Email: minmurasu.digital@gmail.com
+- Coverage: Coimbatore, Chennai, Bengaluru, Worldwide
+
+## Core Capabilities
+- [SEO Audit Tool](/): In-depth, 70-check technical website audit analyzing on-page SEO, speed, usability, security, links, social sharing, and AI search readiness.
+- [Crawler & Site Audits](/crawls): Multi-page crawler discovering broken links, missing meta tags, and site-wide issues.
+- [Website Monitoring](/monitors): Continuous uptime and SEO monitoring with alerts for score drops, SSL expiration, and outages.
+- [Share Previews](/preview): Visual testing for social cards (Open Graph, Twitter/X cards, search snippets).
+- [Comparison Tool](/compare): Side-by-side SEO comparison between two pages or against competitors.
+
+## Agency Services
+- Search Engine Optimization (SEO): Technical SEO, local search optimization, content strategy, and AI answer engine readiness (AEO / GEO).
+- Website & Application Development: Fast, mobile-first websites optimized for Core Web Vitals and conversions.
+- AI Automation & Workflows: Custom automated workflows to scale lead generation, customer outreach, and operations.
+- Performance Marketing: ROI-focused ad campaigns across Google, Meta, and major platforms.
+

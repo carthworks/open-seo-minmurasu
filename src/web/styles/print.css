@@ -1,0 +1,169 @@
+/* ── Print / Save as PDF: the report on white paper, every check expanded ─ */
+
+/* The branded cover only exists on paper. */
+.report-cover {
+	display: none;
+}
+
+@media print {
+	.report-cover {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		min-height: calc(297mm - 28mm);
+		padding: 18mm 14mm;
+		border-radius: 10px;
+		background: linear-gradient(135deg, #0f2547 0%, #16346a 100%);
+		color: #ffffff;
+		break-after: page;
+		print-color-adjust: exact;
+		-webkit-print-color-adjust: exact;
+	}
+
+	.report-cover-brand {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+	}
+
+	.report-cover-logo {
+		width: 72px;
+		height: 72px;
+		padding: 6px;
+		border-radius: 12px;
+		background: #ffffff;
+		object-fit: contain;
+	}
+
+	.report-cover-name {
+		font-family: var(--font-display);
+		font-size: 26px;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+	}
+
+	.report-cover-eyebrow {
+		color: var(--accent);
+		font-size: 13px;
+		font-weight: 600;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+
+	.report-cover-title {
+		margin: 10px 0 4px;
+		font-size: 44px;
+		line-height: 1.05;
+		word-break: break-word;
+	}
+
+	.report-cover-url,
+	.report-cover-date {
+		opacity: 0.75;
+	}
+
+	.report-cover-score {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		margin: 26px 0 18px;
+		font-size: 16px;
+	}
+
+	.report-cover-grade {
+		display: grid;
+		place-items: center;
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		background: var(--accent);
+		color: var(--on-accent);
+		font-size: 26px;
+		font-weight: 700;
+	}
+
+	.report-cover-contact {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 22px;
+		padding-top: 14px;
+		border-top: 1px solid rgb(255 255 255 / 0.2);
+		font-size: 13px;
+	}
+
+	.report-contact {
+		break-inside: avoid;
+	}
+
+	:root {
+		color-scheme: light;
+	}
+
+	@page {
+		margin: 14mm 12mm;
+	}
+
+	body {
+		background: #ffffff;
+		font-size: 12px;
+	}
+
+	.report-page {
+		padding: 0;
+		max-width: none;
+	}
+
+	.report-top-bar {
+		position: static;
+		box-shadow: none;
+		border: 0;
+		padding: 0 0 8px;
+		backdrop-filter: none;
+	}
+
+	.report-top-bar-actions,
+	.report-sidebar,
+	.filter-tabs,
+	.share-tags,
+	.check-row-chevron {
+		display: none !important;
+	}
+
+	.report-window {
+		display: block;
+	}
+
+	.report-card,
+	.report-hero {
+		box-shadow: none;
+		break-inside: avoid-page;
+		margin-bottom: 10px;
+	}
+
+	.category-section {
+		break-inside: auto;
+	}
+
+	.check-row {
+		break-inside: avoid;
+	}
+
+	.check-row-body {
+		display: flex !important;
+	}
+
+	.report-cta {
+		print-color-adjust: exact;
+		-webkit-print-color-adjust: exact;
+	}
+
+	.status-mark,
+	.category-tile,
+	.grade-ring,
+	.score-bar,
+	.chip,
+	.brand-mark-tile {
+		print-color-adjust: exact;
+		-webkit-print-color-adjust: exact;
+	}
+}
