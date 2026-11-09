@@ -23,6 +23,16 @@ const ReportCover = (props: ReportCoverProps) => {
 						<strong>{report.score}/100</strong> overall score
 					</span>
 				</div>
+				<div className="report-cover-categories">
+					{report.categories.map((c) => (
+						<div key={c.id} className="report-cover-cat-pill">
+							<span className="report-cover-cat-name">{c.name}</span>
+							<span className="report-cover-cat-score mono">
+								{c.grade} · {c.score}%
+							</span>
+						</div>
+					))}
+				</div>
 				<p className="report-cover-date">
 					Prepared by {brandName} · {absoluteDate(report.createdAt)}
 				</p>
