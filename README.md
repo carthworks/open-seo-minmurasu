@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/brand/min-murasu-banner.jpg" alt="MIN MURASU Banner" width="100%" />
+  <img src="public/brand/min-murasu-banner.png" alt="MIN MURASU Banner" width="100%" />
 </p>
 
 # OpenSEO · MIN MURASU Edition
