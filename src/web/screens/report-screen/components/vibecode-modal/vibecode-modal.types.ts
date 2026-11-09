@@ -5,3 +5,4 @@ export interface VibecodeModalProps {
 	open: boolean
 	onClose: () => void
 }
+

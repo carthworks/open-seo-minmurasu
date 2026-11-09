@@ -27,11 +27,12 @@ An open-source, full-stack SEO audit and digital marketing platform powered by *
 
 ## 🎯 What It Does
 
+- **✨ VibeCode Prompt Generator**: Instant AI prompt generator that packages all failed checks, warnings, and low-priority fixes into a clean markdown prompt ready to feed directly into **Cursor, Claude Code, Lovable, v0, Antigravity**, or any AI coding assistant to auto-remediate your codebase.
 - **Comprehensive 10-Area Audits**: 81 automated diagnostic checks evaluated in seconds, weighted into one unified grade.
 - **Actionable Prioritized Fixes**: Every issue is categorized by severity (`High`, `Medium`, `Low`) with step-by-step instructions and code snippets.
 - **Site-Wide Crawler**: Crawls entire websites to detect broken links, duplicate titles, missing descriptions, thin content, and indexability issues.
 - **Direct Lead Generation**: Generated reports include direct **Call**, **WhatsApp**, and **Email** buttons for instant client outreach.
-- **Print & PDF Cover Export**: Generates agency-ready, beautifully styled PDF reports complete with a branded cover page.
+- **Print & PDF Cover Export with Category Grade Pills**: Generates agency-ready, beautifully styled PDF reports complete with a branded cover page and executive category grades.
 - **XML Sitemap Explorer**: Inspects any `sitemap.xml`, extracts discovered URLs, change frequencies, priorities, and launches batch audits.
 - **Interactive SEO Utilities**:
   - **SERP Simulator**: Live Google desktop search preview with character length counters and cut-off alerts.
@@ -42,6 +43,17 @@ An open-source, full-stack SEO audit and digital marketing platform powered by *
 - **AI Search Readiness (GEO)**: Analyzes whether your site is accessible and citeable by AI answer engines via `/llms.txt` and crawler directives.
 - **Side-by-Side Competitor Comparison**: Compare two URLs side-by-side to highlight competitive advantages and missing optimizations.
 - **Continuous Monitoring & Alerts**: Automated daily or weekly re-audits with alerts sent to Email, Slack, Discord, or Webhooks on score drops or downtime.
+
+---
+
+## ⚡ VibeCode AI Prompt Generator
+
+Turn audit diagnostic insights directly into working code without manual copying:
+
+1. **Scan Any Website**: Run a comprehensive audit on your target URL.
+2. **Click `✨ VibeCode Prompt`**: Located in the top-right action bar of every report.
+3. **Copy Structured AI Prompt**: Opens a modal window with an instant overview of failed checks, warnings, recommendations, and execution checklists.
+4. **Paste Into Your Coding Agent**: Feed directly into Cursor, Claude Code, Lovable, v0, or Antigravity to have the AI systematically fix title lengths, meta descriptions, image alts, schema tags, heading hierarchies, robots rules, and trust badges across your project files.
 
 ---
 

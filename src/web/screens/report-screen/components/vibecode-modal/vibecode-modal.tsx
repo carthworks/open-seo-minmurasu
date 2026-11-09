@@ -103,3 +103,4 @@ const VibecodeModal = (props: VibecodeModalProps) => {
 }
 
 export default memo(VibecodeModal)
+

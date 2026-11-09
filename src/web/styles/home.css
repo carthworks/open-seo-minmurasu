@@ -270,3 +270,92 @@ a.composer-hint:hover {
 	color: var(--ink);
 	transform: translateX(3px);
 }
+
+/* ── Home Features & Utilities Grid ────────────────────────────────── */
+
+.home-features-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 12px;
+}
+
+.home-feature-card {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	padding: 16px;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-lg);
+	background: var(--surface-2);
+	color: inherit;
+	text-decoration: none;
+	animation: homeFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+	transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+		box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+		border-color 0.2s ease,
+		background 0.2s ease;
+}
+
+.home-feature-card:hover {
+	transform: translateY(-2px);
+	background: var(--surface);
+	border-color: var(--line-strong);
+	box-shadow: 0 12px 28px -10px rgb(11 18 32 / 0.12), var(--shadow-card);
+}
+
+.home-feature-card--highlight {
+	grid-column: 1 / -1;
+	border-color: var(--accent);
+	background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+	box-shadow: 0 0 0 1px var(--accent-faint), var(--shadow-card);
+}
+
+.home-feature-badge {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	display: inline-flex;
+	align-items: center;
+	padding: 3px 8px;
+	border-radius: var(--radius-full);
+	background: var(--accent);
+	color: #fff;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.home-feature-icon {
+	font-size: 24px;
+	line-height: 1;
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+
+.home-feature-card h3 {
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.home-feature-card p {
+	margin-top: 4px;
+	color: var(--ink-2);
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.home-feature-arrow {
+	margin-left: auto;
+	align-self: center;
+	color: var(--ink-3);
+	font-size: 16px;
+	transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.home-feature-card:hover .home-feature-arrow {
+	color: var(--ink);
+	transform: translateX(3px);
+}
+
