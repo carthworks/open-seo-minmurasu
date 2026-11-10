@@ -2,7 +2,7 @@ import type { NextConfig } from 'next'
 import pkg from './package.json'
 
 const nextConfig: NextConfig = {
-	output: 'standalone',
+	output: process.env.VERCEL ? undefined : 'standalone',
 	poweredByHeader: false,
 	env: { OPENSEO_VERSION: pkg.version },
 	experimental: {

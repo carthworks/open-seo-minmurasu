@@ -1037,4 +1037,139 @@ a.composer-hint:hover {
 	padding: 0 4px;
 }
 
+/* ── Domain WHOIS Panel ────────────────────────────────────────────── */
+
+.whois-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	padding: 24px;
+}
+
+.whois-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 14px;
+}
+
+.whois-card {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 16px;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-md);
+	background: var(--surface-2);
+}
+
+.whois-label {
+	font-size: 11.5px;
+	color: var(--ink-3);
+	text-transform: uppercase;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+}
+
+.whois-value {
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--ink);
+}
+
+.whois-domain-title {
+	font-family: var(--font-data);
+	color: var(--accent);
+}
+
+.whois-highlight {
+	color: #2b8a3e;
+}
+
+.whois-value.is-danger {
+	color: #c92a2a;
+}
+
+.whois-sub {
+	font-size: 12px;
+	color: var(--ink-2);
+}
+
+.whois-details-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 16px;
+}
+
+.whois-sub-box {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 16px;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-md);
+	background: var(--surface-2);
+}
+
+.whois-sub-box h4 {
+	font-size: 13.5px;
+	font-weight: 600;
+	margin: 0;
+	color: var(--ink);
+}
+
+.whois-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.whois-ns-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	color: var(--ink);
+}
+
+.whois-ns-item code {
+	background: var(--surface);
+	padding: 2px 6px;
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--line);
+	font-family: var(--font-data);
+	font-size: 12px;
+}
+
+.whois-status-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.status-pill {
+	display: inline-block;
+	padding: 3px 8px;
+	border-radius: var(--radius-sm);
+	background: var(--surface);
+	border: 1px solid var(--line);
+	font-size: 11px;
+	color: var(--ink-2);
+	font-family: var(--font-data);
+}
+
+.status-pill--dnssec {
+	background: #e7f5ff;
+	color: #1864ab;
+	border-color: #a5d8ff;
+}
+
+.status-pill--source {
+	background: #f8f9fa;
+	color: #495057;
+}
+
+
 

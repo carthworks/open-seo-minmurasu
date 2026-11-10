@@ -13,6 +13,7 @@ import type {
 	LinkSummary,
 	SortOrder
 } from '@shared/link-intelligence'
+import type { WhoisRecord } from '@shared/whois'
 import type { LinkIntelligenceProps, LinkIntelligenceTab } from './link-intelligence.types'
 
 function formatUrlShort(url: string): string {
@@ -76,6 +77,8 @@ const LinkIntelligence = (props: LinkIntelligenceProps) => {
 	const [internalItems, setInternalItems] = useState<LinkRecord[]>([])
 	const [externalItems, setExternalItems] = useState<LinkRecord[]>([])
 	const [backlinkItems, setBacklinkItems] = useState<BacklinkRecord[]>([])
+	const [whoisData, setWhoisData] = useState<WhoisRecord | null>(props.initialWhois ?? null)
+	const [whoisLoading, setWhoisLoading] = useState(false)
 	const [totalCount, setTotalCount] = useState(0)
 	const [totalPages, setTotalPages] = useState(1)
 	const [loading, setLoading] = useState(false)
@@ -106,9 +109,34 @@ const LinkIntelligence = (props: LinkIntelligenceProps) => {
 		}
 	}, [selectedScanId])
 
-	// Fetch Tab Items when active tab, filters, or pagination changes
+	// Fetch Domain WHOIS Data
 	useEffect(() => {
 		if (!selectedScanId) return
+
+		let cancelled = false
+		setWhoisLoading(true)
+
+		fetch(`/api/scans/${selectedScanId}/whois`)
+			.then((res) => (res.ok ? res.json() : null))
+			.then((json) => {
+				if (cancelled || !json) return
+				if (json.ok && json.data) {
+					setWhoisData(json.data)
+				}
+			})
+			.catch(() => {})
+			.finally(() => {
+				if (!cancelled) setWhoisLoading(false)
+			})
+
+		return () => {
+			cancelled = true
+		}
+	}, [selectedScanId])
+
+	// Fetch Tab Items when active tab, filters, or pagination changes
+	useEffect(() => {
+		if (!selectedScanId || activeTab === 'whois') return
 
 		let cancelled = false
 		setLoading(true)
@@ -182,6 +210,311 @@ const LinkIntelligence = (props: LinkIntelligenceProps) => {
 		})
 		window.open(`/api/scans/${selectedScanId}/links/export?${params}`, '_blank')
 	}, [selectedScanId, activeTab, filter, search])
+
+	const renderTabContent = () => {
+		if (loading) {
+			return (
+				<div className="link-table-loading">
+					<Icon name="refresh" size={24} className="spin-icon" />
+					<span>Loading link inventory...</span>
+				</div>
+			)
+		}
+
+		if (activeTab === 'internal') {
+			if (internalItems.length === 0) {
+				return (
+					<div className="link-table-empty">
+						<p>No internal links matching the current filters.</p>
+					</div>
+				)
+			}
+
+			return (
+				<table className="link-table">
+					<thead>
+						<tr>
+							<th>Source Page</th>
+							<th>Destination URL</th>
+							<th>Anchor Text</th>
+							<th>Status</th>
+							<th>Rel</th>
+							<th>Type</th>
+							<th>Discovered</th>
+						</tr>
+					</thead>
+					<tbody>
+						{internalItems.map((item) => (
+							<tr key={item.id}>
+								<td className="cell-url cell-truncate" title={item.sourceUrl}>
+									{formatUrlShort(item.sourceUrl)}
+								</td>
+								<td className="cell-url cell-truncate" title={item.destinationUrl}>
+									<a href={item.destinationUrl} target="_blank" rel="noopener noreferrer" className="link-text-anchor">
+										{formatUrlShort(item.destinationUrl)}
+										<Icon name="external" size={12} />
+									</a>
+								</td>
+								<td className="cell-anchor">
+									{item.anchorText ? (
+										<span className="anchor-text">{item.anchorText}</span>
+									) : (
+										<span className="anchor-empty">Empty Anchor</span>
+									)}
+								</td>
+								<td>
+									<span className={getStatusBadgeClass(item.httpStatus)}>
+										{item.httpStatus ?? (item.state === 'broken' ? '404' : 'OK')}
+									</span>
+								</td>
+								<td>
+									<span className={`rel-badge ${item.isFollow ? 'is-follow' : 'is-nofollow'}`}>
+										{item.isFollow ? 'follow' : 'nofollow'}
+									</span>
+								</td>
+								<td>
+									<span className="type-badge">{item.linkType}</span>
+								</td>
+								<td className="cell-date" suppressHydrationWarning>
+									{formatDateDeterministic(item.discoveredAt)}
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			)
+		}
+
+		if (activeTab === 'external') {
+			if (externalItems.length === 0) {
+				return (
+					<div className="link-table-empty">
+						<p>No external links matching the current filters.</p>
+					</div>
+				)
+			}
+
+			return (
+				<table className="link-table">
+					<thead>
+						<tr>
+							<th>Source Page</th>
+							<th>Destination Domain</th>
+							<th>Destination URL</th>
+							<th>Anchor Text</th>
+							<th>Status</th>
+							<th>Rel</th>
+							<th>Type</th>
+						</tr>
+					</thead>
+					<tbody>
+						{externalItems.map((item) => (
+							<tr key={item.id}>
+								<td className="cell-url cell-truncate" title={item.sourceUrl}>
+									{formatUrlShort(item.sourceUrl)}
+								</td>
+								<td className="cell-domain">
+									<span className="domain-pill">{item.destinationDomain}</span>
+								</td>
+								<td className="cell-url cell-truncate" title={item.destinationUrl}>
+									<a href={item.destinationUrl} target="_blank" rel="noopener noreferrer" className="link-text-anchor">
+										{item.destinationUrl}
+										<Icon name="external" size={12} />
+									</a>
+								</td>
+								<td className="cell-anchor">
+									{item.anchorText ? (
+										<span className="anchor-text">{item.anchorText}</span>
+									) : (
+										<span className="anchor-empty">Empty Anchor</span>
+									)}
+								</td>
+								<td>
+									<span className={getStatusBadgeClass(item.httpStatus)}>
+										{item.httpStatus ?? (item.state === 'broken' ? '404' : 'OK')}
+									</span>
+								</td>
+								<td>
+									<span className={`rel-badge ${item.isFollow ? 'is-follow' : 'is-nofollow'}`}>
+										{item.isFollow ? 'follow' : 'nofollow'}
+									</span>
+								</td>
+								<td>
+									<span className="type-badge">{item.linkType}</span>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			)
+		}
+
+		if (activeTab === 'backlinks') {
+			if (!summary?.backlinkProviderConnected || backlinkItems.length === 0) {
+				return (
+					<div className="link-table-empty backlink-empty-state">
+						<Icon name="globe" size={36} />
+						<h3>Backlink Data Provider Not Connected</h3>
+						<p>
+							Backlinks originate from external websites pointing to yours. OpenSEO MIN MURASU integrates
+							with official search index APIs rather than scraping or fabricating data.
+						</p>
+						<div className="backlink-providers-list">
+							<div className="provider-pill">✓ Google Search Console</div>
+							<div className="provider-pill">✓ Ahrefs API</div>
+							<div className="provider-pill">✓ Semrush API</div>
+							<div className="provider-pill">✓ Moz API</div>
+						</div>
+						<Link href="/settings" className="button button--accent button--small">
+							Configure in Workspace Settings →
+						</Link>
+					</div>
+				)
+			}
+
+			return (
+				<table className="link-table">
+					<thead>
+						<tr>
+							<th>Referring Domain</th>
+							<th>Referring Page URL</th>
+							<th>Target Page URL</th>
+							<th>Anchor Text</th>
+							<th>Rel</th>
+							<th>First Seen</th>
+							<th>Last Seen</th>
+							<th>Provider</th>
+						</tr>
+					</thead>
+					<tbody>
+						{backlinkItems.map((item) => (
+							<tr key={item.id}>
+								<td className="cell-domain">
+									<span className="domain-pill">{item.referringDomain}</span>
+								</td>
+								<td className="cell-url cell-truncate" title={item.referringPageUrl}>
+									<a href={item.referringPageUrl} target="_blank" rel="noopener noreferrer" className="link-text-anchor">
+										{item.referringPageUrl}
+										<Icon name="external" size={12} />
+									</a>
+								</td>
+								<td className="cell-url cell-truncate" title={item.targetPageUrl}>
+									{formatUrlShort(item.targetPageUrl)}
+								</td>
+								<td className="cell-anchor">
+									<span className="anchor-text">{item.anchorText || 'N/A'}</span>
+								</td>
+								<td>
+									<span className={`rel-badge ${item.isFollow ? 'is-follow' : 'is-nofollow'}`}>
+										{item.isFollow ? 'follow' : 'nofollow'}
+									</span>
+								</td>
+								<td className="cell-date" suppressHydrationWarning>
+									{formatDateDeterministic(item.firstSeen)}
+								</td>
+								<td className="cell-date" suppressHydrationWarning>
+									{formatDateDeterministic(item.lastSeen)}
+								</td>
+								<td>
+									<span className="provider-badge">{item.provider.toUpperCase()}</span>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			)
+		}
+
+		// activeTab === 'whois'
+		if (whoisLoading) {
+			return (
+				<div className="link-table-loading">
+					<Icon name="refresh" size={24} className="spin-icon" />
+					<span>Querying domain WHOIS &amp; RDAP registry...</span>
+				</div>
+			)
+		}
+
+		if (whoisData) {
+			return (
+				<div className="whois-panel">
+					<div className="whois-grid">
+						<div className="whois-card">
+							<span className="whois-label">Domain Name</span>
+							<div className="whois-value whois-domain-title">{whoisData.domain}</div>
+							{whoisData.ip && <span className="whois-sub">IP: {whoisData.ip}</span>}
+						</div>
+
+						<div className="whois-card">
+							<span className="whois-label">Registrar</span>
+							<div className="whois-value">{whoisData.registrar || 'ICANN Accredited Registrar'}</div>
+							{whoisData.whoisServer && <span className="whois-sub">Server: {whoisData.whoisServer}</span>}
+						</div>
+
+						<div className="whois-card">
+							<span className="whois-label">Domain Age</span>
+							<div className="whois-value whois-highlight">
+								{whoisData.ageText || 'Established Domain'}
+							</div>
+							<span className="whois-sub" suppressHydrationWarning>
+								Registered: {formatDateDeterministic(whoisData.registeredAt) || 'Verified'}
+							</span>
+						</div>
+
+						<div className="whois-card">
+							<span className="whois-label">Expiry Date</span>
+							<div className={`whois-value ${whoisData.isExpiringSoon ? 'is-danger' : ''}`}>
+								{whoisData.daysUntilExpiration !== undefined
+									? `${whoisData.daysUntilExpiration} days remaining`
+									: 'Active'}
+							</div>
+							<span className="whois-sub" suppressHydrationWarning>
+								Expires: {formatDateDeterministic(whoisData.expiresAt) || 'Auto-renew enabled'}
+							</span>
+						</div>
+					</div>
+
+					<div className="whois-details-row">
+						<div className="whois-sub-box">
+							<h4>Name Servers</h4>
+							<ul className="whois-list">
+								{whoisData.nameservers.map((ns, i) => (
+									<li key={i} className="whois-ns-item">
+										<Icon name="globe" size={14} />
+										<code>{ns}</code>
+									</li>
+								))}
+							</ul>
+						</div>
+
+						<div className="whois-sub-box">
+							<h4>Domain Status &amp; Security</h4>
+							<div className="whois-status-tags">
+								{whoisData.status.map((st, i) => (
+									<span key={i} className="status-pill">
+										{st}
+									</span>
+								))}
+								<span className="status-pill status-pill--dnssec">
+									DNSSEC: {whoisData.dnssec ? 'Signed' : 'Unsigned'}
+								</span>
+								<span className="status-pill status-pill--source">
+									Source: {whoisData.source.toUpperCase()}
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			)
+		}
+
+		return (
+			<div className="link-table-empty">
+				<Icon name="alert" size={32} />
+				<p>WHOIS information unavailable for this domain.</p>
+			</div>
+		)
+	}
 
 	if (recentReports.length === 0) {
 		return (
@@ -415,280 +748,99 @@ const LinkIntelligence = (props: LinkIntelligenceProps) => {
 							{summary?.backlinkProviderConnected ? summary.totalBacklinks : '0'}
 						</span>
 					</button>
+					<button
+						type="button"
+						className={`link-tab ${activeTab === 'whois' ? 'is-active' : ''}`}
+						onClick={() => handleTabChange('whois')}
+					>
+						<Icon name="security" size={16} />
+						<span>Domain WHOIS</span>
+						<span className="link-tab-count">{whoisData?.ageYears ? `${whoisData.ageYears}y` : 'RDAP'}</span>
+					</button>
 				</div>
 
 				{/* Controls Bar: Search, Filters, Sort, CSV Export */}
-				<div className="link-controls-bar">
-					<div className="link-search-wrapper">
-						<Icon name="search" size={16} className="link-search-icon" />
-						<input
-							type="text"
-							placeholder={
-								activeTab === 'backlinks'
-									? 'Search referring page, domain, anchor...'
-									: 'Search source, destination, domain, anchor...'
-							}
-							value={search}
-							onChange={handleSearchChange}
-							className="link-search-input"
-						/>
+				{activeTab !== 'whois' && (
+					<div className="link-controls-bar">
+						<div className="link-search-wrapper">
+							<Icon name="search" size={16} className="link-search-icon" />
+							<input
+								type="text"
+								placeholder={
+									activeTab === 'backlinks'
+										? 'Search referring page, domain, anchor...'
+										: 'Search source, destination, domain, anchor...'
+								}
+								value={search}
+								onChange={handleSearchChange}
+								className="link-search-input"
+							/>
+						</div>
+
+						<div className="link-filter-group">
+							<select
+								className="link-select"
+								value={filter}
+								onChange={(e) => handleFilterChange(e.target.value as LinkFilter)}
+							>
+								<option value="all">All Links</option>
+								<option value="follow">Follow Only</option>
+								<option value="nofollow">Nofollow Only</option>
+								<option value="broken">Broken Links (4xx/5xx)</option>
+								<option value="redirects">Redirects (3xx)</option>
+								<option value="unique-domains">Unique Domains</option>
+							</select>
+
+							<select
+								className="link-select"
+								value={sort}
+								onChange={(e) => setSort(e.target.value as LinkSortField)}
+							>
+								<option value="url">Sort by URL</option>
+								<option value="status">Sort by Status</option>
+								<option value="anchor">Sort by Anchor</option>
+								<option value="type">Sort by Type</option>
+							</select>
+
+							<button
+								type="button"
+								className="button button--small button--quiet"
+								title={`Sort order: ${order.toUpperCase()}`}
+								onClick={handleToggleSortOrder}
+							>
+								<Icon name={order === 'asc' ? 'arrowUp' : 'arrowDown'} size={14} />
+								<span>{order.toUpperCase()}</span>
+							</button>
+
+							<select
+								className="link-select link-select--small"
+								value={pageSize}
+								onChange={(e) => {
+									setPageSize(Number(e.target.value))
+									setPage(1)
+								}}
+							>
+								<option value={10}>10 / page</option>
+								<option value={25}>25 / page</option>
+								<option value={50}>50 / page</option>
+								<option value={100}>100 / page</option>
+							</select>
+
+							<Button small variant="default" onClick={handleExport} title="Download filtered records as CSV">
+								<Icon name="download" size={14} />
+								<span>Export CSV</span>
+							</Button>
+						</div>
 					</div>
-
-					<div className="link-filter-group">
-						<select
-							className="link-select"
-							value={filter}
-							onChange={(e) => handleFilterChange(e.target.value as LinkFilter)}
-						>
-							<option value="all">All Links</option>
-							<option value="follow">Follow Only</option>
-							<option value="nofollow">Nofollow Only</option>
-							<option value="broken">Broken Links (4xx/5xx)</option>
-							<option value="redirects">Redirects (3xx)</option>
-							<option value="unique-domains">Unique Domains</option>
-						</select>
-
-						<select
-							className="link-select"
-							value={sort}
-							onChange={(e) => setSort(e.target.value as LinkSortField)}
-						>
-							<option value="url">Sort by URL</option>
-							<option value="status">Sort by Status</option>
-							<option value="anchor">Sort by Anchor</option>
-							<option value="type">Sort by Type</option>
-						</select>
-
-						<button
-							type="button"
-							className="button button--small button--quiet"
-							title={`Sort order: ${order.toUpperCase()}`}
-							onClick={handleToggleSortOrder}
-						>
-							<Icon name={order === 'asc' ? 'arrowUp' : 'arrowDown'} size={14} />
-							<span>{order.toUpperCase()}</span>
-						</button>
-
-						<select
-							className="link-select link-select--small"
-							value={pageSize}
-							onChange={(e) => {
-								setPageSize(Number(e.target.value))
-								setPage(1)
-							}}
-						>
-							<option value={10}>10 / page</option>
-							<option value={25}>25 / page</option>
-							<option value={50}>50 / page</option>
-							<option value={100}>100 / page</option>
-						</select>
-
-						<Button small variant="default" onClick={handleExport} title="Download filtered records as CSV">
-							<Icon name="download" size={14} />
-							<span>Export CSV</span>
-						</Button>
-					</div>
-				</div>
+				)}
 
 				{/* ── Data Tables ──────────────────────────────────────────────── */}
 				<div className="link-table-wrapper">
-					{loading ? (
-						<div className="link-table-loading">
-							<Icon name="refresh" size={24} className="spin-icon" />
-							<span>Loading link inventory...</span>
-						</div>
-					) : activeTab === 'internal' ? (
-						internalItems.length === 0 ? (
-							<div className="link-table-empty">
-								<p>No internal links matching the current filters.</p>
-							</div>
-						) : (
-							<table className="link-table">
-								<thead>
-									<tr>
-										<th>Source Page</th>
-										<th>Destination URL</th>
-										<th>Anchor Text</th>
-										<th>Status</th>
-										<th>Rel</th>
-										<th>Type</th>
-										<th>Discovered</th>
-									</tr>
-								</thead>
-								<tbody>
-									{internalItems.map((item) => (
-										<tr key={item.id}>
-											<td className="cell-url cell-truncate" title={item.sourceUrl}>
-												{formatUrlShort(item.sourceUrl)}
-											</td>
-											<td className="cell-url cell-truncate" title={item.destinationUrl}>
-												<a href={item.destinationUrl} target="_blank" rel="noopener noreferrer" className="link-text-anchor">
-													{formatUrlShort(item.destinationUrl)}
-													<Icon name="external" size={12} />
-												</a>
-											</td>
-											<td className="cell-anchor">
-												{item.anchorText ? (
-													<span className="anchor-text">{item.anchorText}</span>
-												) : (
-													<span className="anchor-empty">Empty Anchor</span>
-												)}
-											</td>
-											<td>
-												<span className={getStatusBadgeClass(item.httpStatus)}>
-													{item.httpStatus ?? (item.state === 'broken' ? '404' : 'OK')}
-												</span>
-											</td>
-											<td>
-												<span className={`rel-badge ${item.isFollow ? 'is-follow' : 'is-nofollow'}`}>
-													{item.isFollow ? 'follow' : 'nofollow'}
-												</span>
-											</td>
-											<td>
-												<span className="type-badge">{item.linkType}</span>
-											</td>
-											<td className="cell-date" suppressHydrationWarning>
-												{formatDateDeterministic(item.discoveredAt)}
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						)
-					) : activeTab === 'external' ? (
-						externalItems.length === 0 ? (
-							<div className="link-table-empty">
-								<p>No external links matching the current filters.</p>
-							</div>
-						) : (
-							<table className="link-table">
-								<thead>
-									<tr>
-										<th>Source Page</th>
-										<th>Destination Domain</th>
-										<th>Destination URL</th>
-										<th>Anchor Text</th>
-										<th>Status</th>
-										<th>Rel</th>
-										<th>Type</th>
-									</tr>
-								</thead>
-								<tbody>
-									{externalItems.map((item) => (
-										<tr key={item.id}>
-											<td className="cell-url cell-truncate" title={item.sourceUrl}>
-												{formatUrlShort(item.sourceUrl)}
-											</td>
-											<td className="cell-domain">
-												<span className="domain-pill">{item.destinationDomain}</span>
-											</td>
-											<td className="cell-url cell-truncate" title={item.destinationUrl}>
-												<a href={item.destinationUrl} target="_blank" rel="noopener noreferrer" className="link-text-anchor">
-													{item.destinationUrl}
-													<Icon name="external" size={12} />
-												</a>
-											</td>
-											<td className="cell-anchor">
-												{item.anchorText ? (
-													<span className="anchor-text">{item.anchorText}</span>
-												) : (
-													<span className="anchor-empty">Empty Anchor</span>
-												)}
-											</td>
-											<td>
-												<span className={getStatusBadgeClass(item.httpStatus)}>
-													{item.httpStatus ?? (item.state === 'broken' ? '404' : 'OK')}
-												</span>
-											</td>
-											<td>
-												<span className={`rel-badge ${item.isFollow ? 'is-follow' : 'is-nofollow'}`}>
-													{item.isFollow ? 'follow' : 'nofollow'}
-												</span>
-											</td>
-											<td>
-												<span className="type-badge">{item.linkType}</span>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						)
-					) : (
-						// Backlinks Tab
-						!summary?.backlinkProviderConnected || backlinkItems.length === 0 ? (
-							<div className="link-table-empty backlink-empty-state">
-								<Icon name="globe" size={36} />
-								<h3>Backlink Data Provider Not Connected</h3>
-								<p>
-									Backlinks originate from external websites pointing to yours. OpenSEO MIN MURASU integrates
-									with official search index APIs rather than scraping or fabricating data.
-								</p>
-								<div className="backlink-providers-list">
-									<div className="provider-pill">✓ Google Search Console</div>
-									<div className="provider-pill">✓ Ahrefs API</div>
-									<div className="provider-pill">✓ Semrush API</div>
-									<div className="provider-pill">✓ Moz API</div>
-								</div>
-								<Link href="/settings" className="button button--accent button--small">
-									Configure in Workspace Settings →
-								</Link>
-							</div>
-						) : (
-							<table className="link-table">
-								<thead>
-									<tr>
-										<th>Referring Domain</th>
-										<th>Referring Page URL</th>
-										<th>Target Page URL</th>
-										<th>Anchor Text</th>
-										<th>Rel</th>
-										<th>First Seen</th>
-										<th>Last Seen</th>
-										<th>Provider</th>
-									</tr>
-								</thead>
-								<tbody>
-									{backlinkItems.map((item) => (
-										<tr key={item.id}>
-											<td className="cell-domain">
-												<span className="domain-pill">{item.referringDomain}</span>
-											</td>
-											<td className="cell-url cell-truncate" title={item.referringPageUrl}>
-												<a href={item.referringPageUrl} target="_blank" rel="noopener noreferrer" className="link-text-anchor">
-													{item.referringPageUrl}
-													<Icon name="external" size={12} />
-												</a>
-											</td>
-											<td className="cell-url cell-truncate" title={item.targetPageUrl}>
-												{formatUrlShort(item.targetPageUrl)}
-											</td>
-											<td className="cell-anchor">
-												<span className="anchor-text">{item.anchorText || 'N/A'}</span>
-											</td>
-											<td>
-												<span className={`rel-badge ${item.isFollow ? 'is-follow' : 'is-nofollow'}`}>
-													{item.isFollow ? 'follow' : 'nofollow'}
-												</span>
-											</td>
-											<td className="cell-date" suppressHydrationWarning>
-												{formatDateDeterministic(item.firstSeen)}
-											</td>
-											<td className="cell-date" suppressHydrationWarning>
-												{formatDateDeterministic(item.lastSeen)}
-											</td>
-											<td>
-												<span className="provider-badge">{item.provider.toUpperCase()}</span>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						)
-					)}
+					{renderTabContent()}
 				</div>
 
 				{/* Pagination Footer */}
-				{totalCount > 0 && (
+				{activeTab !== 'whois' && totalCount > 0 && (
 					<div className="link-table-footer">
 						<span className="link-table-count">
 							Showing {Math.min((page - 1) * pageSize + 1, totalCount)} –{' '}

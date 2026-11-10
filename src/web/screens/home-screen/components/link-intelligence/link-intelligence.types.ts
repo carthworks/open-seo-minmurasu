@@ -4,9 +4,10 @@ import type {
 	LinkRecord,
 	LinkSummary
 } from '@shared/link-intelligence'
+import type { WhoisRecord } from '@shared/whois'
 import type { ReportSummary } from '@shared/types'
 
-export type LinkIntelligenceTab = 'internal' | 'external' | 'backlinks'
+export type LinkIntelligenceTab = 'internal' | 'external' | 'backlinks' | 'whois'
 
 export interface LinkIntelligenceProps {
 	/** Recent scans available to inspect. */
@@ -21,5 +22,7 @@ export interface LinkIntelligenceProps {
 	initialExternal?: LinkRecord[]
 	/** Initial backlinks preview. */
 	initialBacklinks?: BacklinkRecord[]
+	/** Pre-fetched initial WHOIS data. */
+	initialWhois?: WhoisRecord | null
 }
 
