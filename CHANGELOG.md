@@ -2,6 +2,29 @@
 
 All notable changes to OpenSEO. Versions follow [Semantic Versioning](https://semver.org).
 
+## [0.4.0](https://github.com/carthworks/open-seo-minmurasu/compare/v0.3.0...v0.4.0) (2026-11-10)
+
+
+### Features
+
+* add about page and company screen for MIN MURASU branding ([d78a33a](https://github.com/carthworks/open-seo-minmurasu/commit/d78a33aa466122441243060e52b7b42e52cfdc13))
+* add about screen, home screen preview, and update documentation for 10-area SEO audit ([7591cd2](https://github.com/carthworks/open-seo-minmurasu/commit/7591cd23188898f4fcf2b70daa197103f36e1d32))
+* add app pages, trust audit checks, and UI screen components ([2673987](https://github.com/carthworks/open-seo-minmurasu/commit/2673987618c5fd0f7d187e02d7b0e9379d1e65a5))
+* add category grade pills on PDF report cover and print stylesheet ([34c0cf5](https://github.com/carthworks/open-seo-minmurasu/commit/34c0cf5036f1a46f81e2fa323dc72c09ace49554))
+* add design tokens and base styles for OpenSEO web interface ([7e9314e](https://github.com/carthworks/open-seo-minmurasu/commit/7e9314e1694b280000868a72dffa61a792c286bf))
+* add link intelligence module with API routes and UI components ([9a0756e](https://github.com/carthworks/open-seo-minmurasu/commit/9a0756e9947e2d5603e8c038eac38ddaf3b83b23))
+* add open-seo application structure and core features ([2bf331e](https://github.com/carthworks/open-seo-minmurasu/commit/2bf331e6156118bcb2242abce0b566befe62de7c))
+* add trust and E-E-A-T audit checks for SEO analysis ([bc5e28c](https://github.com/carthworks/open-seo-minmurasu/commit/bc5e28c61b5ca7830f83e0b24b6312b8f1cca78a))
+* add WHOIS and domain intelligence lookup features ([4064df7](https://github.com/carthworks/open-seo-minmurasu/commit/4064df7859edc2f61dc23b3215d27f8da6d799fb))
+* **report:** add ready-made VibeCode prompt modal in top bar ([57844c7](https://github.com/carthworks/open-seo-minmurasu/commit/57844c7d6e47ef5a69cb356dac86b0e23a8c6838))
+
+
+### Documentation
+
+* update banner image reference to PNG format and add asset ([6e77d37](https://github.com/carthworks/open-seo-minmurasu/commit/6e77d37fdbcaab9224752e2aba417d5b91ab5bc7))
+* update README and home screen with VibeCode prompt, quick tools, and 10 audit areas ([d7addd4](https://github.com/carthworks/open-seo-minmurasu/commit/d7addd4f8c73804148c8068f26011434e4b8afcf))
+* update README with MIN MURASU branding and features ([f0dfd0d](https://github.com/carthworks/open-seo-minmurasu/commit/f0dfd0d02d89c8ea671601f4375fb697835018c2))
+
 ## [0.3.0](https://github.com/alexsilver8/open-seo/compare/v0.2.0...v0.3.0) (2026-10-11)
 
 ### Compare two audits
