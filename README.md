@@ -27,6 +27,7 @@ An open-source, full-stack SEO audit and digital marketing platform powered by *
 
 ## 🎯 What It Does
 
+- **🔗 Link Intelligence Module**: Deep link discovery, categorization, and analysis directly on the homepage. Discovers all internal links, outbound external links, and genuine backlinks with summary cards, issue detection, interactive paginated data tables, search, filters, and CSV export.
 - **✨ VibeCode Prompt Generator**: Instant AI prompt generator that packages all failed checks, warnings, and low-priority fixes into a clean markdown prompt ready to feed directly into **Cursor, Claude Code, Lovable, v0, Antigravity**, or any AI coding assistant to auto-remediate your codebase.
 - **Comprehensive 10-Area Audits**: 81 automated diagnostic checks evaluated in seconds, weighted into one unified grade.
 - **Actionable Prioritized Fixes**: Every issue is categorized by severity (`High`, `Medium`, `Low`) with step-by-step instructions and code snippets.
@@ -54,6 +55,36 @@ Turn audit diagnostic insights directly into working code without manual copying
 2. **Click `✨ VibeCode Prompt`**: Located in the top-right action bar of every report.
 3. **Copy Structured AI Prompt**: Opens a modal window with an instant overview of failed checks, warnings, recommendations, and execution checklists.
 4. **Paste Into Your Coding Agent**: Feed directly into Cursor, Claude Code, Lovable, v0, or Antigravity to have the AI systematically fix title lengths, meta descriptions, image alts, schema tags, heading hierarchies, robots rules, and trust badges across your project files.
+
+---
+
+## 🔗 Link Intelligence Module
+
+The Link Intelligence module provides total visibility into your internal linking graph, outbound references, and backlink profile directly on the homepage:
+
+- **Three Executive Summary Cards**:
+  - **Internal Links**: Total internal links, unique internal destinations, and broken internal links.
+  - **External Links**: Total outbound external links, unique external domains, and broken external links.
+  - **Backlinks**: Discovered backlinks, unique referring domains, follow vs nofollow distribution, and verified provider status (Google Search Console, Ahrefs, Semrush, Moz). Never fabricates data; displays "Backlink data not connected" when no provider API is configured.
+- **Link Analysis & Issue Detection**:
+  - Detects broken links (4xx/5xx), 3xx redirects, multi-hop redirect chains, empty anchor text, generic anchor text ("click here", "read more"), internal links marked nofollow, insecure HTTP links, and excessive link dilution.
+- **Interactive Data Tables with 3 Tabs**:
+  - **Internal Links**: Source URL, Destination URL, Anchor Text, HTTP Status Code, Rel, Link Type, Discovered Date.
+  - **External Links**: Source URL, Destination Domain, Destination URL, Anchor Text, HTTP Status Code, Rel, Link Type.
+  - **Backlinks**: Referring Domain, Referring Page URL, Target Page URL, Anchor Text, Rel, First Seen, Last Seen, Provider.
+- **Search, Filters & Sorting**:
+  - Filters: `All Links`, `Follow Only`, `Nofollow Only`, `Broken Links`, `Redirects`, `Unique Domains`.
+  - Search by source, destination, domain, or anchor text.
+  - Sort by URL, HTTP status, link type, or anchor text with configurable page size (10, 25, 50, 100).
+- **One-Click CSV Export**:
+  - Download filtered records as `internal-links.csv`, `external-links.csv`, or `backlinks.csv`.
+- **REST API Endpoints**:
+  - `GET /api/scans/:id/links/summary`
+  - `GET /api/scans/:id/links/internal`
+  - `GET /api/scans/:id/links/external`
+  - `GET /api/scans/:id/links/backlinks`
+  - `GET /api/scans/:id/links/issues`
+  - `GET /api/scans/:id/links/export?type=internal|external|backlinks`
 
 ---
 

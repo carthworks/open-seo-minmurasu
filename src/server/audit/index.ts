@@ -20,6 +20,7 @@ import { runPageSpeed } from './pagespeed'
 import { parsePage } from './parse'
 import { bestFavicon } from './previews'
 import { overallScore, scoreCategories } from './scoring'
+import { buildLinkInventoryFromAudit, saveLinkInventory } from '@server/link-intelligence'
 
 export { AuditError } from './http'
 
@@ -92,7 +93,7 @@ export async function runAudit(input: string, options: AuditOptions = {}): Promi
 	const categories = scoreCategories(checks)
 	const score = overallScore(categories)
 
-	return {
+	const report: AuditReport = {
 		id: newId(),
 		version: 1,
 		url,
@@ -128,4 +129,10 @@ export async function runAudit(input: string, options: AuditOptions = {}): Promi
 		},
 		source
 	}
+
+	buildLinkInventoryFromAudit(report, ctx)
+		.then((inventory) => saveLinkInventory(inventory))
+		.catch(() => {})
+
+	return report
 }

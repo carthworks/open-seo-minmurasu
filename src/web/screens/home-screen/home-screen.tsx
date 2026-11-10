@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { CATEGORIES } from '@shared/grades'
 import { CategoryTile } from '@web/components/category-tile'
 import { AuditForm } from './components/audit-form'
+import { LinkIntelligence } from './components/link-intelligence'
 import { RecentAudits } from './components/recent-audits'
 import type { HomeScreenProps } from './home-screen.types'
 
@@ -88,6 +89,8 @@ const HomeScreen = (props: HomeScreenProps) => {
 					))}
 				</ul>
 			</section>
+
+			<LinkIntelligence recentReports={recent} />
 
 			{recent.length > 0 && (
 				<section className="home-section" aria-labelledby="recent-title">
