@@ -5,6 +5,7 @@ export const NAV: NavGroup[] = [
 		title: 'Audit',
 		items: [
 			{ href: '/', label: 'New audit', icon: 'audit' },
+			{ href: '/keyword-audit', label: 'SEO & Keywords', icon: 'search' },
 			{ href: '/preview', label: 'Share preview', icon: 'image' },
 			{ href: '/history', label: 'History', icon: 'clock' },
 			{ href: '/compare', label: 'Compare', icon: 'compare' }
@@ -35,7 +36,10 @@ export const NAV: NavGroup[] = [
 	},
 	{
 		title: 'Workspace',
-		items: [{ href: '/settings', label: 'Settings', icon: 'settings' }]
+		items: [
+			{ href: '/help', label: 'Help & How-to', icon: 'info' },
+			{ href: '/settings', label: 'Settings', icon: 'settings' }
+		]
 	}
 ]
 

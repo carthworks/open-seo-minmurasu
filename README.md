@@ -27,6 +27,7 @@ An open-source, full-stack SEO audit and digital marketing platform powered by *
 
 ## 🎯 What It Does
 
+- **🔍 Website SEO & Keyword Audit Tool (10-Area Client Proposal Service)**: A specialized agency service module built for auditing prospective clients' websites. Accepts any website URL, crawls multiple pages, and extracts target keywords, search intent, heading hierarchy, technical compliance, competitor gaps, and turnkey revised titles and meta descriptions across 10 dedicated audit categories.
 - **🔗 Link Intelligence Module**: Deep link discovery, categorization, and analysis directly on the homepage. Discovers all internal links, outbound external links, and genuine backlinks with summary cards, issue detection, interactive paginated data tables, search, filters, and CSV export.
 - **✨ VibeCode Prompt Generator**: Instant AI prompt generator that packages all failed checks, warnings, and low-priority fixes into a clean markdown prompt ready to feed directly into **Cursor, Claude Code, Lovable, v0, Antigravity**, or any AI coding assistant to auto-remediate your codebase.
 - **Comprehensive 10-Area Audits**: 81 automated diagnostic checks evaluated in seconds, weighted into one unified grade.
@@ -44,6 +45,20 @@ An open-source, full-stack SEO audit and digital marketing platform powered by *
 - **AI Search Readiness (GEO)**: Analyzes whether your site is accessible and citeable by AI answer engines via `/llms.txt` and crawler directives.
 - **Side-by-Side Competitor Comparison**: Compare two URLs side-by-side to highlight competitive advantages and missing optimizations.
 - **Continuous Monitoring & Alerts**: Automated daily or weekly re-audits with alerts sent to Email, Slack, Discord, or Webhooks on score drops or downtime.
+- **📖 Built-in Help & How-To Guide (`/help`)**: Interactive in-app documentation with step-by-step walkthroughs for every module and an FAQ section.
+
+---
+
+## 📖 Quick How-To Guide
+
+Need a quick walkthrough inside the app? Visit **`/help`** (or click **Help & How-to** in the sidebar under **Workspace**).
+
+1. **Single-Page SEO Audit (`/`)**: Enter any website URL and click **Run audit** to score 10 weighted areas (including **Trust & E-E-A-T** and **AI Search**) and export a branded PDF report.
+2. **VibeCode AI Prompt**: After any scan completes, click **✨ VibeCode Prompt** in the top-right action bar to open a popup modal containing all failed, warning, and low-priority issues formatted for Cursor, Claude Code, or Antigravity.
+3. **Website SEO & Keyword Audit (`/keyword-audit`)**: Enter a prospective client URL, choose 10–50 pages, and get target keywords, search intent, heading placement, competitor gaps, revised titles/descriptions, and CSV exports.
+4. **Link Intelligence & Domain WHOIS (`/`)**: Scroll below **"Ten areas, one grade"** on the homepage and pick any recent scan to inspect Internal Links, External Links, Backlinks, and Domain WHOIS/RDAP details.
+5. **Site Crawler & Sitemap Explorer (`/crawls`, `/sitemap`)**: Crawl entire domains for broken pages and duplicate metas, or inspect `sitemap.xml` URLs for batch auditing.
+6. **Utilities, Checklist & Monitors (`/tools`, `/checklist`, `/monitors`, `/settings`)**: Preview SERPs, generate JSON-LD Schema and AI `robots.txt` rules, track the 2027 SEO Checklist, schedule recurring monitors, and configure white-label branding.
 
 ---
 
@@ -55,6 +70,28 @@ Turn audit diagnostic insights directly into working code without manual copying
 2. **Click `✨ VibeCode Prompt`**: Located in the top-right action bar of every report.
 3. **Copy Structured AI Prompt**: Opens a modal window with an instant overview of failed checks, warnings, recommendations, and execution checklists.
 4. **Paste Into Your Coding Agent**: Feed directly into Cursor, Claude Code, Lovable, v0, or Antigravity to have the AI systematically fix title lengths, meta descriptions, image alts, schema tags, heading hierarchies, robots rules, and trust badges across your project files.
+
+---
+
+## 🔍 Website SEO & Keyword Audit Tool (10-Area Proposal Engine)
+
+Built as an agency service for auditing prospective clients' websites, pitching high-value SEO retainers, and generating turnkey technical proposals:
+
+| Audit Category | Information Extracted & Analyzed |
+|---|---|
+| **01. Website overview** | Crawled pages, URL hierarchy, crawl depth, XML sitemap validation, robots.txt status, and server TTFB response times. |
+| **02. SEO keywords** | Discovers candidate keyword terms across single words and phrases. Classifies terms by **Primary**, **Secondary**, and **Long-tail**, calculates keyword density and targeting scores (0–100), and provides a placement matrix across Title, Meta Description, H1, H2, H3, and URL. |
+| **03. Meta information** | Validates title tags (50–60 character threshold) and meta descriptions (120–160 character threshold). Identifies missing, truncated, or excessively long tags with a page-by-page compliance breakdown. |
+| **04. Headings** | Inspects H1, H2, and H3 heading hierarchies. Strictly checks for single H1 compliance and verifies whether the page's primary target keyword is incorporated into headings. |
+| **05. Content analysis** | Evaluates total word counts, reading times, topic clustering, and search intent classification (**Commercial**, **Transactional**, **Informational**, **Navigational**). Automatically flags thin content pages (<250 words). |
+| **06. Technical SEO** | Checks Google indexability (`noindex` tags), canonical link consistency (self-referencing vs cross-domain), robots.txt accessibility, HTTP status codes, and broken links. |
+| **07. Images** | Evaluates total images, alt text coverage percentage, and flags generic camera filenames (`IMG_001.png`, `image1.jpg`) versus keyword-rich semantic filenames. |
+| **08. Local SEO** | Detects `LocalBusiness` Schema.org JSON-LD/microdata, location keywords in body text (cities, states, regions), clickable `tel:` links, address markers, and Google Maps embeds. |
+| **09. Competitor analysis** | Benchmarks high-opportunity commercial and transactional search terms against industry competitors, calculates content gap opportunities (**High**, **Medium**, **Low**), and offers strategic capture advice. |
+| **10. Recommendations** | Generates missing target keyword lists, page-by-page **Revised Titles and Meta Descriptions** with before/after comparisons and strategic rationales, plus an instant **VibeCode AI Fix Prompt** to auto-remediate client codebases. |
+
+- **CSV Export**: One-click downloads for `keywords.csv` (all discovered keywords with scores and placements) and `pages.csv` (page-by-page audit metrics).
+- **Navigation**: Accessible directly from the main sidebar at `/keyword-audit`.
 
 ---
 

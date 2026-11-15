@@ -1,0 +1,39 @@
+import type {
+	KeywordAuditCategoryId,
+	KeywordAuditSummary,
+	SearchIntent,
+	WebsiteKeywordAuditReport
+} from '@shared/keyword-audit'
+
+export interface KeywordAuditLauncherProps {
+	audits: KeywordAuditSummary[]
+	pageLimit: number
+}
+
+export interface KeywordAuditReportViewProps {
+	report: WebsiteKeywordAuditReport
+}
+
+export type KeywordFilterType = 'all' | 'primary' | 'secondary' | 'long-tail'
+export type IntentFilterType = 'all' | SearchIntent
+
+export interface KeywordFilterState {
+	search: string
+	type: KeywordFilterType
+	intent: IntentFilterType
+	sortBy: 'score' | 'frequency' | 'density' | 'term'
+	sortDir: 'asc' | 'desc'
+}
+
+export interface PageFilterState {
+	search: string
+	status: 'all' | 'good' | 'warning' | 'missing'
+	sortBy: 'pathname' | 'wordCount' | 'titleLength' | 'issues'
+	sortDir: 'asc' | 'desc'
+}
+
+export type CategoryTabOption = {
+	id: KeywordAuditCategoryId
+	label: string
+	badge?: number | string
+}

@@ -78,7 +78,7 @@ async function loadJson<T>(name: string, fallback: T): Promise<T> {
 }
 
 /** Like loadJson, but a page that reads Redis while it's unreachable shows nothing instead of failing. */
-async function readJson<T>(name: string, fallback: T): Promise<T> {
+export async function readJson<T>(name: string, fallback: T): Promise<T> {
 	try {
 		return await loadJson(name, fallback)
 	} catch (e) {
@@ -89,7 +89,7 @@ async function readJson<T>(name: string, fallback: T): Promise<T> {
 }
 
 /** Files are written through a temporary file and a rename, so a crash never leaves half a file. */
-async function writeJson(name: string, data: unknown): Promise<void> {
+export async function writeJson(name: string, data: unknown): Promise<void> {
 	const text = JSON.stringify(data)
 	if (remote) {
 		await redis(remote, 'SET', KEY_PREFIX + name, text)
@@ -103,7 +103,7 @@ async function writeJson(name: string, data: unknown): Promise<void> {
 	await rename(temp, file)
 }
 
-async function removeJson(name: string): Promise<void> {
+export async function removeJson(name: string): Promise<void> {
 	if (remote) {
 		await redis(remote, 'DEL', KEY_PREFIX + name)
 
@@ -116,7 +116,7 @@ async function removeJson(name: string): Promise<void> {
  * Reads, changes and writes back one list under its lock. It reads with loadJson, so a Redis
  * hiccup stops the update instead of writing an empty list over the real one.
  */
-function updateJson<T>(name: string, fallback: T, change: (current: T) => T): Promise<T> {
+export function updateJson<T>(name: string, fallback: T, change: (current: T) => T): Promise<T> {
 	return withLock(name, async () => {
 		const next = change(await loadJson(name, fallback))
 		await writeJson(name, next)
