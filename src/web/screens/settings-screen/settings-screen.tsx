@@ -108,6 +108,45 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 					/>
 				</Row>
 				<Row
+					label="Brand logo"
+					note="Image URL or /brand/logo.png path shown in the sidebar and PDF cover."
+					htmlFor="s-brand-logo"
+				>
+					<TextSettingField
+						id="s-brand-logo"
+						setting="brandLogo"
+						value={settings.brandLogo}
+						placeholder="/brand/logo.png"
+						onChange={update}
+					/>
+				</Row>
+				<Row
+					label="Brand accent color"
+					note="Hex color used for buttons, highlights, and PDF cover accents."
+					htmlFor="s-brand-color"
+				>
+					<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+						<input
+							type="color"
+							aria-label="Pick brand accent color"
+							value={/^#[0-9a-f]{6}$/i.test(settings.brandColor) ? settings.brandColor : '#c8f135'}
+							onChange={(e) => update({ brandColor: e.currentTarget.value })}
+							style={{ width: 38, height: 38, padding: 2, borderRadius: 6, border: '1px solid var(--border, #e5e7eb)', cursor: 'pointer', background: 'transparent' }}
+						/>
+						<TextSettingField
+							key={settings.brandColor}
+							id="s-brand-color"
+							setting="brandColor"
+							value={settings.brandColor}
+							placeholder="#c8f135"
+							validate={(v) =>
+								/^#[0-9a-f]{6}$/i.test(v) ? null : 'Enter a 6-digit hex color, like #c8f135.'
+							}
+							onChange={update}
+						/>
+					</div>
+				</Row>
+				<Row
 					label="Website & CTA link"
 					note="Where visitors go when clicking your brand or call-to-action button on reports."
 					htmlFor="s-cta-url"
@@ -134,6 +173,44 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 						setting="ctaText"
 						value={settings.ctaText}
 						placeholder="Visit MIN MURASU"
+						onChange={update}
+					/>
+				</Row>
+				<Row
+					label="Contact phone (Call & WhatsApp)"
+					note="Shown on reports for Call and WhatsApp buttons. Empty hides them."
+					htmlFor="s-contact-phone"
+				>
+					<TextSettingField
+						id="s-contact-phone"
+						setting="contactPhone"
+						type="tel"
+						value={settings.contactPhone}
+						placeholder="+91 9486772206"
+						validate={(v) =>
+							!v || /^\+?[\d\s\-()]{5,25}$/.test(v)
+								? null
+								: 'Enter a valid phone number or leave empty.'
+						}
+						onChange={update}
+					/>
+				</Row>
+				<Row
+					label="Contact email"
+					note="Shown on reports for the Email button. Empty hides it."
+					htmlFor="s-contact-email"
+				>
+					<TextSettingField
+						id="s-contact-email"
+						setting="contactEmail"
+						type="email"
+						value={settings.contactEmail}
+						placeholder="minmurasu.digital@gmail.com"
+						validate={(v) =>
+							!v || /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(v)
+								? null
+								: 'Enter a valid email address or leave empty.'
+						}
 						onChange={update}
 					/>
 				</Row>
