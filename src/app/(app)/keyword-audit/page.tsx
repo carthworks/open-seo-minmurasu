@@ -1,7 +1,7 @@
-import type { Metadata } from 'next'
 import { listKeywordAudits } from '@server/keyword-audit'
 import { getSettings } from '@server/store'
 import { KeywordAuditLauncher } from '@web/screens/keyword-audit-screen'
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
 	title: 'Website SEO & Keyword Audit Tool',
@@ -12,7 +12,13 @@ export const metadata: Metadata = {
 const KeywordAuditPage = async () => {
 	const [audits, settings] = await Promise.all([listKeywordAudits(), getSettings()])
 
-	return <KeywordAuditLauncher audits={audits} pageLimit={settings.crawlPageLimit || 50} />
+	return (
+		<KeywordAuditLauncher
+			audits={audits}
+			pageLimit={settings.crawlPageLimit || 50}
+			defaultMaxPages={settings.keywordAuditPageLimit || 15}
+		/>
+	)
 }
 
 export default KeywordAuditPage

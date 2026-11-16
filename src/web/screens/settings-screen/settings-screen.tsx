@@ -1,15 +1,19 @@
 'use client'
 
-import { memo, useCallback, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import {
+	BACKLINK_PROVIDER_OPTIONS,
 	BROKEN_LINK_OPTIONS,
 	CRAWL_PAGE_OPTIONS,
+	KEYWORD_AUDIT_PAGE_OPTIONS,
+	VIBECODE_STACK_OPTIONS,
+	type BacklinkProvider,
 	type PublicSettings,
-	type Settings
+	type VibecodeTargetStack
 } from '@shared/settings'
 import { Icon } from '@web/components/icon'
 import { PageHeader } from '@web/components/page-header'
+import { useRouter } from 'next/navigation'
+import { memo, useCallback, useState } from 'react'
 import { AppUrlField } from './components/app-url-field'
 import { isWebAddress } from './components/app-url-field/app-url-field.utils'
 import { EmailsField } from './components/emails-field'
@@ -278,6 +282,103 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 						onChange={update}
 					/>
 				</Row>
+				<Row
+					label="Keyword audit default pages"
+					note="Default page depth for the 10-area Website SEO & Keyword Audit Tool."
+					htmlFor="s-ka-pages"
+				>
+					<SettingSelect
+						id="s-ka-pages"
+						setting="keywordAuditPageLimit"
+						options={KEYWORD_AUDIT_PAGE_OPTIONS}
+						settings={settings}
+						onChange={update}
+					/>
+				</Row>
+				<Row
+					label="Default target locations"
+					note="Comma-separated cities or regions to prioritize in Local SEO checks."
+					htmlFor="s-target-locations"
+				>
+					<TextSettingField
+						id="s-target-locations"
+						setting="defaultTargetLocations"
+						value={settings.defaultTargetLocations}
+						placeholder="Chennai, Coimbatore, Bengaluru"
+						onChange={update}
+					/>
+				</Row>
+				<Row
+					label="VibeCode prompt target stack"
+					note="Framework hint included in generated VibeCode AI fix prompts."
+					htmlFor="s-vibecode-stack"
+				>
+					<select
+						id="s-vibecode-stack"
+						className="select"
+						value={settings.vibecodeTargetStack}
+						onChange={(e) =>
+							update({ vibecodeTargetStack: e.currentTarget.value as VibecodeTargetStack })
+						}
+					>
+						{VIBECODE_STACK_OPTIONS.map((opt) => (
+							<option key={opt.value} value={opt.value}>
+								{opt.label}
+							</option>
+						))}
+					</select>
+				</Row>
+			</Section>
+
+			<Section
+				title="Link Intelligence & Backlinks"
+				description="Configure domain WHOIS lookups and connect a genuine backlink provider API."
+			>
+				<Row
+					label="Domain WHOIS / RDAP lookup"
+					note="Fetches registrar, domain age, expiry, and DNS records in Link Intelligence."
+					htmlFor="s-whois"
+				>
+					<SettingToggle
+						id="s-whois"
+						setting="whoisEnabled"
+						settings={settings}
+						onChange={update}
+					/>
+				</Row>
+				<Row
+					label="Backlink data provider"
+					note="Select your verified backlink API source. Never scrapes or fabricates data."
+					htmlFor="s-backlink-provider"
+				>
+					<select
+						id="s-backlink-provider"
+						className="select"
+						value={settings.backlinkProvider}
+						onChange={(e) =>
+							update({ backlinkProvider: e.currentTarget.value as BacklinkProvider })
+						}
+					>
+						{BACKLINK_PROVIDER_OPTIONS.map((opt) => (
+							<option key={opt.value} value={opt.value}>
+								{opt.label}
+							</option>
+						))}
+					</select>
+				</Row>
+				<Row
+					label="Backlink provider API key"
+					note="Stored securely on the server and never sent back to the browser."
+					htmlFor="s-backlink-key"
+				>
+					<SecretField
+						id="s-backlink-key"
+						setting="backlinkApiKey"
+						isSet={settings.hasBacklinkKey}
+						placeholder="Paste provider API key or token"
+						onChange={update}
+					/>
+				</Row>
 			</Section>
 
 			<Section
@@ -364,6 +465,18 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 						<Icon name="external" size={15} />
 						minmurasu.digital
 					</a>
+				</Row>
+				<Row
+					label="Storage mode"
+					note={
+						settings.storageMode === 'redis'
+							? 'Upstash Redis is active — reports, crawls, and settings persist across Vercel serverless functions.'
+							: 'Local JSON files in the data/ folder. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN for Vercel.'
+					}
+				>
+					<span className="badge badge-accent">
+						{settings.storageMode === 'redis' ? 'Upstash Redis' : 'Local JSON'}
+					</span>
 				</Row>
 				<Row
 					label={`OpenSEO ${version}`}

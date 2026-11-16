@@ -1,6 +1,10 @@
 /** Light, dark, or whatever the visitor's system uses. */
 export type ThemeSetting = 'light' | 'dark' | 'system'
 
+export type BacklinkProvider = 'none' | 'gsc' | 'ahrefs' | 'semrush' | 'moz'
+
+export type VibecodeTargetStack = 'generic' | 'nextjs' | 'wordpress' | 'shopify' | 'html'
+
 /** Everything that can be changed on the Settings page. */
 export interface Settings {
 	theme: ThemeSetting
@@ -34,26 +38,55 @@ export interface Settings {
 	webhookUrl: string
 	/** The address people open OpenSEO at, so links in alerts work. */
 	appUrl: string
+	/** Backlink provider for Link Intelligence. */
+	backlinkProvider: BacklinkProvider
+	/** API key or token for the selected backlink provider. Never sent back to the browser. */
+	backlinkApiKey: string
+	/** Enable automatic Domain WHOIS / RDAP lookups in Link Intelligence. */
+	whoisEnabled: boolean
+	/** Default page limit for the Website SEO & Keyword Audit Tool. */
+	keywordAuditPageLimit: number
+	/** Optional comma-separated target cities or regions for Local SEO checks. */
+	defaultTargetLocations: string
+	/** Target framework hint included in generated VibeCode prompts. */
+	vibecodeTargetStack: VibecodeTargetStack
 }
 
 /** Settings that are secrets: saved, but never sent back to the browser. */
 export type SecretSetting =
-	'pagespeedApiKey' | 'slackWebhookUrl' | 'discordWebhookUrl' | 'webhookUrl'
+	| 'pagespeedApiKey'
+	| 'backlinkApiKey'
+	| 'slackWebhookUrl'
+	| 'discordWebhookUrl'
+	| 'webhookUrl'
 
 /** Settings as the browser sees them: each secret is replaced by whether it's set. */
 export type PublicSettings = Omit<Settings, SecretSetting> & {
 	hasPagespeedKey: boolean
 	pagespeedKeyFromEnv: boolean
+	hasBacklinkKey: boolean
 	hasSlackWebhook: boolean
 	hasDiscordWebhook: boolean
 	hasWebhook: boolean
 	/** SMTP_URL is set, so alert emails can go out. */
 	emailReady: boolean
+	/** Where data is persisted: Upstash Redis or local JSON files. */
+	storageMode?: 'redis' | 'local'
 }
 
 export const DEFAULT_BRAND_COLOR = '#c8f135'
 
 export const THEME_SETTINGS: ThemeSetting[] = ['light', 'dark', 'system']
+
+export const BACKLINK_PROVIDERS: BacklinkProvider[] = ['none', 'gsc', 'ahrefs', 'semrush', 'moz']
+
+export const VIBECODE_STACKS: VibecodeTargetStack[] = [
+	'generic',
+	'nextjs',
+	'wordpress',
+	'shopify',
+	'html'
+]
 
 export const DEFAULT_SETTINGS: Settings = {
 	theme: 'light',
@@ -73,12 +106,18 @@ export const DEFAULT_SETTINGS: Settings = {
 	slackWebhookUrl: '',
 	discordWebhookUrl: '',
 	webhookUrl: '',
-	appUrl: ''
+	appUrl: '',
+	backlinkProvider: 'none',
+	backlinkApiKey: '',
+	whoisEnabled: true,
+	keywordAuditPageLimit: 15,
+	defaultTargetLocations: '',
+	vibecodeTargetStack: 'generic'
 }
 
 /** What each webhook address must look like, and what to say when it doesn't. */
 export const WEBHOOK_FORMATS: Record<
-	Exclude<SecretSetting, 'pagespeedApiKey'>,
+	Exclude<SecretSetting, 'pagespeedApiKey' | 'backlinkApiKey'>,
 	{ pattern: RegExp; hint: string }
 > = {
 	slackWebhookUrl: {
@@ -122,6 +161,29 @@ export const CRAWL_PAGE_OPTIONS = [
 	{ value: 100, label: '100 pages' },
 	{ value: 250, label: '250 pages' },
 	{ value: 500, label: '500 pages' }
+]
+
+export const KEYWORD_AUDIT_PAGE_OPTIONS = [
+	{ value: 10, label: '10 pages · Quick audit' },
+	{ value: 15, label: '15 pages · Standard' },
+	{ value: 25, label: '25 pages · In-depth' },
+	{ value: 50, label: '50 pages · Full site' }
+]
+
+export const BACKLINK_PROVIDER_OPTIONS: { value: BacklinkProvider; label: string }[] = [
+	{ value: 'none', label: 'Not connected' },
+	{ value: 'gsc', label: 'Google Search Console' },
+	{ value: 'ahrefs', label: 'Ahrefs API' },
+	{ value: 'semrush', label: 'Semrush API' },
+	{ value: 'moz', label: 'Moz API' }
+]
+
+export const VIBECODE_STACK_OPTIONS: { value: VibecodeTargetStack; label: string }[] = [
+	{ value: 'generic', label: 'Generic / Any framework' },
+	{ value: 'nextjs', label: 'Next.js (App Router)' },
+	{ value: 'wordpress', label: 'WordPress' },
+	{ value: 'shopify', label: 'Shopify' },
+	{ value: 'html', label: 'Static HTML / CSS' }
 ]
 
 const MAX_LOGO_LENGTH = 300_000
@@ -243,7 +305,20 @@ export function mergeSettings(base: Settings, input: unknown): Settings {
 			WEBHOOK_FORMATS.discordWebhookUrl.pattern
 		),
 		webhookUrl: webhook(patch.webhookUrl, base.webhookUrl, WEBHOOK_FORMATS.webhookUrl.pattern),
-		appUrl: origin(patch.appUrl, base.appUrl)
+		appUrl: origin(patch.appUrl, base.appUrl),
+		backlinkProvider: BACKLINK_PROVIDERS.includes(patch.backlinkProvider as BacklinkProvider)
+			? (patch.backlinkProvider as BacklinkProvider)
+			: base.backlinkProvider,
+		backlinkApiKey: text(patch.backlinkApiKey, base.backlinkApiKey, 300),
+		whoisEnabled: bool(patch.whoisEnabled, base.whoisEnabled),
+		keywordAuditPageLimit: Math.max(
+			1,
+			count(patch.keywordAuditPageLimit, base.keywordAuditPageLimit, 50)
+		),
+		defaultTargetLocations: text(patch.defaultTargetLocations, base.defaultTargetLocations, 300),
+		vibecodeTargetStack: VIBECODE_STACKS.includes(patch.vibecodeTargetStack as VibecodeTargetStack)
+			? (patch.vibecodeTargetStack as VibecodeTargetStack)
+			: base.vibecodeTargetStack
 	}
 }
 

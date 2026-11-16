@@ -8,6 +8,7 @@ import type {
 export interface KeywordAuditLauncherProps {
 	audits: KeywordAuditSummary[]
 	pageLimit: number
+	defaultMaxPages?: number
 }
 
 export interface KeywordAuditReportViewProps {

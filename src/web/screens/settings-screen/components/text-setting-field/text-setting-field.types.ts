@@ -11,6 +11,7 @@ export interface TextSettingFieldProps {
 		| 'contactPhone'
 		| 'contactEmail'
 		| 'reportFooter'
+		| 'defaultTargetLocations'
 	value: string
 	type?: 'text' | 'url' | 'email' | 'tel'
 	placeholder?: string

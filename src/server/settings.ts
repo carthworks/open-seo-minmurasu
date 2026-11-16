@@ -1,4 +1,5 @@
 import type { PublicSettings, Settings } from '@shared/settings'
+import { redisConfig } from './redis'
 import { getSettings } from './store'
 
 /** The PageSpeed key from the environment wins over the one saved in Settings. */
@@ -9,16 +10,25 @@ export function pagespeedConfig(settings: Settings): { enabled: boolean; apiKey?
 }
 
 export function toPublicSettings(settings: Settings): PublicSettings {
-	const { pagespeedApiKey, slackWebhookUrl, discordWebhookUrl, webhookUrl, ...rest } = settings
+	const {
+		pagespeedApiKey,
+		backlinkApiKey,
+		slackWebhookUrl,
+		discordWebhookUrl,
+		webhookUrl,
+		...rest
+	} = settings
 
 	return {
 		...rest,
 		hasPagespeedKey: Boolean(process.env.PAGESPEED_API_KEY || pagespeedApiKey),
 		pagespeedKeyFromEnv: Boolean(process.env.PAGESPEED_API_KEY),
+		hasBacklinkKey: Boolean(backlinkApiKey),
 		hasSlackWebhook: Boolean(slackWebhookUrl),
 		hasDiscordWebhook: Boolean(discordWebhookUrl),
 		hasWebhook: Boolean(webhookUrl),
-		emailReady: Boolean(process.env.SMTP_URL)
+		emailReady: Boolean(process.env.SMTP_URL),
+		storageMode: redisConfig() ? 'redis' : 'local'
 	}
 }
 

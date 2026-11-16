@@ -1,8 +1,5 @@
 'use client'
 
-import { memo, useState, type SubmitEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import type { AuditProgress } from '@shared/types'
 import { AuditProgressView } from '@web/components/audit-progress-view'
 import { Button } from '@web/components/button'
@@ -10,6 +7,9 @@ import { EmptyState } from '@web/components/empty-state'
 import { Icon } from '@web/components/icon'
 import { PageHeader } from '@web/components/page-header'
 import { postForEvents } from '@web/lib/stream'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { memo, useState, type SubmitEvent } from 'react'
 import type { KeywordAuditLauncherProps } from './keyword-audit-screen.types'
 
 const PAGE_OPTIONS = [
@@ -44,11 +44,11 @@ function getGradeBadgeColor(grade: string): string {
 }
 
 const KeywordAuditLauncher = (props: KeywordAuditLauncherProps) => {
-	const { audits, pageLimit } = props
+	const { audits, pageLimit, defaultMaxPages = 15 } = props
 	const router = useRouter()
 
 	const [url, setUrl] = useState('')
-	const [maxPages, setMaxPages] = useState(15)
+	const [maxPages, setMaxPages] = useState(defaultMaxPages)
 	const [progress, setProgress] = useState<AuditProgress | null>(null)
 	const [error, setError] = useState<string | null>(null)
 	const [deletingId, setDeletingId] = useState<string | null>(null)

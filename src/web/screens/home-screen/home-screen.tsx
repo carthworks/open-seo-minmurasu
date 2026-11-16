@@ -1,7 +1,7 @@
-import { memo } from 'react'
-import Link from 'next/link'
 import { CATEGORIES } from '@shared/grades'
 import { CategoryTile } from '@web/components/category-tile'
+import Link from 'next/link'
+import { memo } from 'react'
 import { AuditForm } from './components/audit-form'
 import { LinkIntelligence } from './components/link-intelligence'
 import { RecentAudits } from './components/recent-audits'
@@ -19,7 +19,7 @@ const HomeScreen = (props: HomeScreenProps) => {
 				</h1>
 				<p className="home-lede">
 					Paste a URL. {brandName} grades on-page SEO, speed, links, usability,
-					security, AI search, local SEO, accessibility, and trust &amp; E-E-A-T, then gives you an instant VibeCode prompt to fix your code.
+					security, AI search, local SEO, accessibility, and trust &amp; E-E-A-T — built for conversion rate optimization, lead generation services, and instant VibeCode fixes.
 				</p>
 				<AuditForm pagespeedEnabled={pagespeedEnabled} />
 			</section>
