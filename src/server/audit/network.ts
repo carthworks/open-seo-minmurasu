@@ -20,6 +20,8 @@ export interface DnsInfo {
 	ip?: string
 	ipv6?: string
 	spf?: string
+	/** Every SPF record found. More than one is an error: receivers then ignore SPF entirely. */
+	spfRecords?: string[]
 	dmarc?: string
 	mx: string[]
 }
@@ -133,10 +135,13 @@ export async function inspectDns(hostname: string): Promise<DnsInfo> {
 		mxRecords(root)
 	])
 
+	const spfRecords = rootTxt.filter((t) => /^v=spf1(\s|$)/i.test(t))
+
 	return {
 		ip: v4.find((ip) => !isPrivateIp(ip)) || v4[0],
 		ipv6: v6[0],
-		spf: rootTxt.find((t) => /^v=spf1/i.test(t)),
+		spf: spfRecords[0],
+		spfRecords,
 		dmarc: dmarcTxt.find((t) => /^v=DMARC1/i.test(t)),
 		mx
 	}

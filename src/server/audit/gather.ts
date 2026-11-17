@@ -103,10 +103,31 @@ async function checkHttpRedirect(finalUrl: URL): Promise<Gathered['httpRedirect'
 		return {
 			checked: true,
 			redirectsToHttps: res.url.startsWith('https://'),
-			finalUrl: res.url
+			finalUrl: res.url,
+			status: res.redirects[0]?.status
 		}
 	} catch (e) {
 		return { checked: true, redirectsToHttps: false, error: (e as Error).message }
+	}
+}
+
+/** Reads /.well-known/security.txt (RFC 9116): who to tell about a vulnerability, and until when. */
+async function findSecurityTxt(origin: string): Promise<NonNullable<Gathered['securityTxt']>> {
+	const url = `${origin}/.well-known/security.txt`
+	try {
+		const res = await safeFetch(url, { timeoutMs: 8000, maxBytes: 64 * 1024 })
+		const body = res.body.toString('utf8')
+		const isText = !res.contentType.includes('text/html') && !/^\s*<(!doctype|html)/i.test(body)
+		if (res.status !== 200 || !isText) return { url, found: false }
+		const lines = body.split(/\r?\n/)
+		const field = (name: string) =>
+			lines
+				.map((line) => line.match(new RegExp(`^\\s*${name}\\s*:\\s*(.+?)\\s*$`, 'i'))?.[1])
+				.filter((v): v is string => Boolean(v))
+
+		return { url, found: true, contact: field('Contact'), expires: field('Expires')[0] }
+	} catch (e) {
+		return { url, found: false, error: (e as Error).message }
 	}
 }
 
@@ -267,7 +288,7 @@ export async function gather(page: ParsedPage, options: GatherOptions): Promise<
 	}
 	const isHttps = finalUrl.protocol === 'https:'
 
-	const [files, llmsTxt, sharing, httpRedirect, network, resources, linkResults] =
+	const [files, llmsTxt, sharing, httpRedirect, network, resources, linkResults, securityTxt] =
 		await Promise.all([
 			step('Read robots.txt and the sitemap', readRobotsAndSitemap(finalUrl.origin)),
 			findLlmsTxt(finalUrl.origin),
@@ -283,7 +304,8 @@ export async function gather(page: ParsedPage, options: GatherOptions): Promise<
 				])
 			),
 			step('Measured scripts, stylesheets and images', measureResources($, finalUrl)),
-			step('Checked the links on the page', checkLinks(links, brokenLinkLimit))
+			step('Checked the links on the page', checkLinks(links, brokenLinkLimit)),
+			findSecurityTxt(finalUrl.origin)
 		])
 
 	return {
@@ -291,6 +313,7 @@ export async function gather(page: ParsedPage, options: GatherOptions): Promise<
 		llmsTxt,
 		sharing,
 		httpRedirect,
+		securityTxt,
 		tls: network[0],
 		dns: network[1],
 		...resources,
