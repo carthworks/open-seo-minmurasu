@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { AiStrategistPanel } from '@web/components/ai-strategist-panel'
 import { ReportFooter } from '@web/components/report-footer'
 import { recommendationsOf } from './report-screen.utils'
 import { PriorityList } from './components/priority-list'
@@ -37,6 +38,11 @@ const ReportScreen = (props: ReportScreenProps) => {
 				<div className="report-main">
 					<ReportHero report={report} issues={toFix.length} />
 					<PriorityList checks={toFix} />
+					<AiStrategistPanel
+						reportId={report.id}
+						domain={report.domain}
+						enabled={settings.localAiEnabled}
+					/>
 					{report.sharing && (
 						<ShareSection sharing={report.sharing} url={report.finalUrl} />
 					)}

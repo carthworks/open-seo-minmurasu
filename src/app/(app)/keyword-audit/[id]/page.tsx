@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getKeywordAudit } from '@server/keyword-audit'
+import { getPublicSettings } from '@server/settings'
 import { KeywordAuditReportView } from '@web/screens/keyword-audit-screen'
 
 interface PageProps {
@@ -19,11 +20,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 const KeywordAuditDetailPage = async ({ params }: PageProps) => {
 	const { id } = await params
-	const report = await getKeywordAudit(id)
+	const [report, settings] = await Promise.all([getKeywordAudit(id), getPublicSettings()])
 
 	if (!report) notFound()
 
-	return <KeywordAuditReportView report={report} />
+	return <KeywordAuditReportView report={report} settings={settings} />
 }
 
 export default KeywordAuditDetailPage

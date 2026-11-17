@@ -6,6 +6,7 @@ import type {
 	KeywordAuditCategoryId,
 	SearchIntent
 } from '@shared/keyword-audit'
+import { AiStrategistPanel } from '@web/components/ai-strategist-panel'
 import { Button } from '@web/components/button'
 import { GradeRing } from '@web/components/grade-ring'
 import { Icon } from '@web/components/icon'
@@ -54,7 +55,7 @@ function getIntentBadgeClass(intent: SearchIntent): string {
 }
 
 const KeywordAuditReportView = (props: KeywordAuditReportViewProps) => {
-	const { report } = props
+	const { report, settings } = props
 
 	const [activeTab, setActiveTab] = useState<KeywordAuditCategoryId>('overview')
 	const [copiedPrompt, setCopiedPrompt] = useState(false)
@@ -925,6 +926,13 @@ ${revisedMetaList}
 					</div>
 				</div>
 			</div>
+
+			{/* Local AI Strategist Panel */}
+			<AiStrategistPanel
+				keywordAuditId={report.id}
+				domain={report.domain}
+				enabled={settings?.localAiEnabled ?? true}
+			/>
 
 			{/* 10-Area Navigation Tabs */}
 			<div className="ka-tabs-bar" role="tablist">

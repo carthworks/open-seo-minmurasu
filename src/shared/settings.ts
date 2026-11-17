@@ -50,6 +50,12 @@ export interface Settings {
 	defaultTargetLocations: string
 	/** Target framework hint included in generated VibeCode prompts. */
 	vibecodeTargetStack: VibecodeTargetStack
+	/** Enable local AI model integration (Ollama / LM Studio). */
+	localAiEnabled: boolean
+	/** OpenAI-compatible base URL for the local model server. */
+	localAiBaseUrl: string
+	/** Model name to invoke on the local AI server. */
+	localAiModel: string
 }
 
 /** Settings that are secrets: saved, but never sent back to the browser. */
@@ -112,7 +118,10 @@ export const DEFAULT_SETTINGS: Settings = {
 	whoisEnabled: true,
 	keywordAuditPageLimit: 15,
 	defaultTargetLocations: '',
-	vibecodeTargetStack: 'generic'
+	vibecodeTargetStack: 'generic',
+	localAiEnabled: true,
+	localAiBaseUrl: 'http://127.0.0.1:11434/v1',
+	localAiModel: 'qwen2.5:14b'
 }
 
 /** What each webhook address must look like, and what to say when it doesn't. */
@@ -318,7 +327,10 @@ export function mergeSettings(base: Settings, input: unknown): Settings {
 		defaultTargetLocations: text(patch.defaultTargetLocations, base.defaultTargetLocations, 300),
 		vibecodeTargetStack: VIBECODE_STACKS.includes(patch.vibecodeTargetStack as VibecodeTargetStack)
 			? (patch.vibecodeTargetStack as VibecodeTargetStack)
-			: base.vibecodeTargetStack
+			: base.vibecodeTargetStack,
+		localAiEnabled: bool(patch.localAiEnabled, base.localAiEnabled),
+		localAiBaseUrl: origin(patch.localAiBaseUrl, base.localAiBaseUrl) || base.localAiBaseUrl,
+		localAiModel: text(patch.localAiModel, base.localAiModel, 120) || base.localAiModel
 	}
 }
 

@@ -12,6 +12,8 @@ export interface TextSettingFieldProps {
 		| 'contactEmail'
 		| 'reportFooter'
 		| 'defaultTargetLocations'
+		| 'localAiBaseUrl'
+		| 'localAiModel'
 	value: string
 	type?: 'text' | 'url' | 'email' | 'tel'
 	placeholder?: string

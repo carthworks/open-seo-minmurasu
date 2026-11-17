@@ -393,6 +393,44 @@
 	box-shadow: var(--shadow-card);
 }
 
+.settings-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 6px;
+	margin-bottom: 18px;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-lg);
+	background: var(--surface-2);
+}
+
+.settings-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	height: 34px;
+	padding: 0 13px;
+	border: 0;
+	border-radius: var(--radius-md);
+	background: transparent;
+	color: var(--ink-2);
+	font-size: 13.5px;
+	font-weight: 550;
+	cursor: pointer;
+	transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.settings-tab:hover {
+	color: var(--ink);
+	background: var(--hover);
+}
+
+.settings-tab.is-active {
+	background: var(--surface);
+	color: var(--ink);
+	box-shadow: var(--shadow-card);
+}
+
 .settings-section {
 	display: grid;
 	grid-template-columns: 220px minmax(0, 1fr);

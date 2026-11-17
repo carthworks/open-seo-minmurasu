@@ -4,6 +4,7 @@ import type {
 	SearchIntent,
 	WebsiteKeywordAuditReport
 } from '@shared/keyword-audit'
+import type { PublicSettings } from '@shared/settings'
 
 export interface KeywordAuditLauncherProps {
 	audits: KeywordAuditSummary[]
@@ -13,6 +14,7 @@ export interface KeywordAuditLauncherProps {
 
 export interface KeywordAuditReportViewProps {
 	report: WebsiteKeywordAuditReport
+	settings?: PublicSettings
 }
 
 export type KeywordFilterType = 'all' | 'primary' | 'secondary' | 'long-tail'

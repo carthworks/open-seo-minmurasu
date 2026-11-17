@@ -1,5 +1,7 @@
 import type { PublicSettings, Settings } from '@shared/settings'
 
+export type SettingsTabId = 'general' | 'audits' | 'links' | 'ai' | 'alerts' | 'about'
+
 export interface SettingsScreenProps {
 	settings: PublicSettings
 	version: string

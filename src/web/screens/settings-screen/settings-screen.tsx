@@ -8,6 +8,7 @@ import {
 	VIBECODE_STACK_OPTIONS,
 	type BacklinkProvider,
 	type PublicSettings,
+	type Settings,
 	type VibecodeTargetStack
 } from '@shared/settings'
 import { Icon } from '@web/components/icon'
@@ -23,10 +24,11 @@ import { Section } from './components/section'
 import { SettingSelect } from './components/setting-select'
 import { SettingToggle } from './components/setting-toggle'
 import { TestAlert } from './components/test-alert'
+import { TestLocalAi } from './components/test-local-ai'
 import { TextSettingField } from './components/text-setting-field'
 import { ThemeOption } from './components/theme-option'
-import { THEMES } from './settings-screen.constants'
-import type { SettingsScreenProps } from './settings-screen.types'
+import { SETTINGS_TABS, THEMES } from './settings-screen.constants'
+import type { SettingsScreenProps, SettingsTabId } from './settings-screen.types'
 
 /** Appearance, audit options and where alerts go. Every change saves straight away. */
 const SettingsScreen = (props: SettingsScreenProps) => {
@@ -35,6 +37,7 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 	const router = useRouter()
 	const [settings, setSettings] = useState<PublicSettings>(initial)
 	const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+	const [activeTab, setActiveTab] = useState<SettingsTabId>('general')
 
 	const update = useCallback(
 		async (patch: Partial<Settings>) => {
@@ -77,7 +80,29 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 				}
 			/>
 
-			<Section title="Appearance">
+			<div className="settings-tabs" role="tablist" aria-label="Settings sections">
+				{SETTINGS_TABS.map((tab) => {
+					const isActive = activeTab === tab.id
+
+					return (
+						<button
+							key={tab.id}
+							type="button"
+							role="tab"
+							aria-selected={isActive}
+							className={`settings-tab ${isActive ? 'is-active' : ''}`}
+							onClick={() => setActiveTab(tab.id)}
+						>
+							<Icon name={tab.icon} size={15} />
+							<span>{tab.label}</span>
+						</button>
+					)
+				})}
+			</div>
+
+			{activeTab === 'general' && (
+				<>
+					<Section title="Appearance">
 				<Row label="Theme" note="Applies to the app and shared reports.">
 					<div className="segmented" role="radiogroup" aria-label="Theme">
 						{THEMES.map((t) => (
@@ -232,8 +257,11 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 					/>
 				</Row>
 			</Section>
+				</>
+			)}
 
-			<Section title="Audits">
+			{activeTab === 'audits' && (
+				<Section title="Audits">
 				<Row
 					label="Core Web Vitals"
 					note="Runs Google PageSpeed Insights for real-browser speed scores and screenshots. Adds about 20 seconds."
@@ -329,9 +357,11 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 					</select>
 				</Row>
 			</Section>
+			)}
 
-			<Section
-				title="Link Intelligence & Backlinks"
+			{activeTab === 'links' && (
+				<Section
+					title="Link Intelligence & Backlinks"
 				description="Configure domain WHOIS lookups and connect a genuine backlink provider API."
 			>
 				<Row
@@ -380,9 +410,69 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 					/>
 				</Row>
 			</Section>
+			)}
 
-			<Section
-				id="alerts"
+			{activeTab === 'ai' && (
+				<Section
+					title="Local AI (Ollama / LM Studio)"
+				description="Run private AI analysis locally to generate performance reports, development roadmaps, VibeCode prompts, and SEO strategy."
+			>
+				<Row
+					label="Enable Local AI"
+					note="Enables AI Strategist generation on audit and keyword reports."
+					htmlFor="s-local-ai-enabled"
+				>
+					<SettingToggle
+						id="s-local-ai-enabled"
+						setting="localAiEnabled"
+						settings={settings}
+						onChange={update}
+					/>
+				</Row>
+				<Row
+					label="Local AI endpoint URL"
+					note="OpenAI-compatible base URL (Ollama default: http://127.0.0.1:11434/v1)."
+					htmlFor="s-local-ai-url"
+				>
+					<TextSettingField
+						id="s-local-ai-url"
+						setting="localAiBaseUrl"
+						type="url"
+						value={settings.localAiBaseUrl}
+						placeholder="http://127.0.0.1:11434/v1"
+						validate={(v) =>
+							isWebAddress(v) ? null : 'Enter a valid URL, like http://127.0.0.1:11434/v1.'
+						}
+						onChange={update}
+					/>
+				</Row>
+				<Row
+					label="Local model name"
+					note="Model tag installed in Ollama or LM Studio (e.g. qwen2.5:14b, deepseek-coder:6.7b)."
+					htmlFor="s-local-ai-model"
+				>
+					<TextSettingField
+						key={settings.localAiModel}
+						id="s-local-ai-model"
+						setting="localAiModel"
+						value={settings.localAiModel}
+						placeholder="qwen2.5:14b"
+						validate={(v) => (v ? null : 'Enter a local model name.')}
+						onChange={update}
+					/>
+				</Row>
+				<Row
+					label="Test connection & models"
+					note="Verifies Ollama/LM Studio is reachable and lets you pick an installed model."
+				>
+					<TestLocalAi selectedModel={settings.localAiModel} onSelectModel={update} />
+				</Row>
+			</Section>
+			)}
+
+			{activeTab === 'alerts' && (
+				<Section
+					id="alerts"
 				title="Alerts"
 				description="Where monitors send alerts. Each alert goes to every channel set up here."
 			>
@@ -450,8 +540,10 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 					/>
 				</Row>
 			</Section>
+			)}
 
-			<Section title="About">
+			{activeTab === 'about' && (
+				<Section title="About">
 				<Row
 					label={settings.brandName}
 					note="📞 Contact: 9486772206 · 📧 Email: minmurasu.digital@gmail.com"
@@ -493,6 +585,7 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 					</a>
 				</Row>
 			</Section>
+			)}
 		</div>
 	)
 }
