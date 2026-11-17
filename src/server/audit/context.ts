@@ -91,6 +91,16 @@ export interface Gathered {
 		checked: boolean
 		redirectsToHttps?: boolean
 		finalUrl?: string
+		/** Status of the first redirect from http:// (301 and 308 are permanent). */
+		status?: number
+		error?: string
+	}
+	/** /.well-known/security.txt (RFC 9116). Missing on contexts built before it was checked. */
+	securityTxt?: {
+		url: string
+		found: boolean
+		contact?: string[]
+		expires?: string
 		error?: string
 	}
 	tls?: TlsInfo
