@@ -1,6 +1,6 @@
 name: OpenSEO audit
 description: Audit preview deploys with OpenSEO and fail the pull request when the SEO score drops or new problems appear.
-author: Alexander Silver
+author: MIN MURASU (based on OpenSEO by Alexander Silver)
 branding:
   icon: search
   color: green

@@ -22,7 +22,7 @@ We want openseo to be a welcoming, harassment-free community for everyone, regar
 
 Maintainers may remove, edit, or reject comments, commits, code, issues and other contributions that don't follow this code of conduct, and may temporarily or permanently ban contributors for behavior they deem harmful.
 
-Report unacceptable behavior to the maintainers (@alexsilver8) privately. All reports will be reviewed promptly and handled confidentially.
+Report unacceptable behavior to the maintainers (minmurasu.digital@gmail.com) privately. All reports will be reviewed promptly and handled confidentially.
 
 ## Attribution
 

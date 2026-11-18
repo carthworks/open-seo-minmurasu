@@ -55,7 +55,7 @@ Need a quick walkthrough inside the app? Visit **`/help`** (or click **Help & Ho
 
 1. **Single-Page SEO Audit (`/`)**: Enter any website URL and click **Run audit** to score 10 weighted areas (including **Trust & E-E-A-T** and **AI Search**) and export a branded PDF report.
 2. **VibeCode AI Prompt**: After any scan completes, click **✨ VibeCode Prompt** in the top-right action bar to open a popup modal containing all failed, warning, and low-priority issues formatted for Cursor, Claude Code, or Antigravity.
-3. **Website SEO & Keyword Audit (`/keyword-audit`)**: Enter a prospective client URL, choose 10–50 pages, and get target keywords, search intent, heading placement, competitor gaps, revised titles/descriptions, and CSV exports.
+3. **Website SEO & Keyword Audit (`/keyword-audit`)**: Enter a prospective client URL, optionally up to 3 competitor URLs, choose 10–50 pages, and get target keywords, search intent, heading placement, competitor gaps, revised titles/descriptions, and CSV exports.
 4. **Link Intelligence & Domain WHOIS (`/`)**: Scroll below **"Ten areas, one grade"** on the homepage and pick any recent scan to inspect Internal Links, External Links, Backlinks, and Domain WHOIS/RDAP details.
 5. **Site Crawler & Sitemap Explorer (`/crawls`, `/sitemap`)**: Crawl entire domains for broken pages and duplicate metas, or inspect `sitemap.xml` URLs for batch auditing.
 6. **Utilities, Checklist & Monitors (`/tools`, `/checklist`, `/monitors`, `/settings`)**: Preview SERPs, generate JSON-LD Schema and AI `robots.txt` rules, track the 2027 SEO Checklist, schedule recurring monitors, and configure white-label branding.
@@ -87,7 +87,7 @@ Built as an agency service for auditing prospective clients' websites, pitching 
 | **06. Technical SEO** | Checks Google indexability (`noindex` tags), canonical link consistency (self-referencing vs cross-domain), robots.txt accessibility, HTTP status codes, and broken links. |
 | **07. Images** | Evaluates total images, alt text coverage percentage, and flags generic camera filenames (`IMG_001.png`, `image1.jpg`) versus keyword-rich semantic filenames. |
 | **08. Local SEO** | Detects `LocalBusiness` Schema.org JSON-LD/microdata, location keywords in body text (cities, states, regions), clickable `tel:` links, address markers, and Google Maps embeds. |
-| **09. Competitor analysis** | Benchmarks high-opportunity commercial and transactional search terms against industry competitors, calculates content gap opportunities (**High**, **Medium**, **Low**), and offers strategic capture advice. |
+| **09. Competitor analysis** | Add up to 3 competitor URLs: their pages are crawled too, and the report lists two-word phrases they use repeatedly that the audited site never mentions, ranked **High** (used by several competitors), **Medium** or **Low**. With no competitor URLs this area is skipped and left out of the overall score. |
 | **10. Recommendations** | Generates missing target keyword lists, page-by-page **Revised Titles and Meta Descriptions** with before/after comparisons and strategic rationales, plus an instant **VibeCode AI Fix Prompt** to auto-remediate client codebases. |
 
 - **CSV Export**: One-click downloads for `keywords.csv` (all discovered keywords with scores and placements) and `pages.csv` (page-by-page audit metrics).
@@ -179,8 +179,8 @@ The sidebar navigation provides quick access to all platform capabilities:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/alexsilver8/open-seo.git
-cd open-seo
+git clone https://github.com/carthworks/open-seo-minmurasu.git
+cd open-seo-minmurasu
 
 # 2. Install dependencies
 pnpm install
@@ -255,7 +255,7 @@ Create a `.env.local` file to configure options:
 ## 🛠️ Development & Testing
 
 ```bash
-# Run tests (241 unit and integration tests across 16 test files)
+# Run the unit and integration tests
 pnpm test
 
 # Run TypeScript typecheck
@@ -279,12 +279,19 @@ pnpm format
 │   │   └── store.ts        # JSON and Redis storage adapters
 │   ├── shared/             # Shared types, grade definitions, formatters, and settings schema
 │   └── web/                # React components, screens, styles, and UI hooks
-├── tests/                  # Vitest test suites (241 tests)
+├── tests/                  # Vitest test suites
 └── data/                   # Persistent storage (settings, crawls, reports)
 ```
 
 ---
 
+## 🙏 Credits
+
+OpenSEO · MIN MURASU Edition is built on [OpenSEO](https://github.com/alexsilver8/open-seo) by
+Alexander Silver. MIN MURASU added the keyword audit, link intelligence, WHOIS, AI strategist and
+agency features on top of it.
+
 ## 📄 License
 
-Distributed under the **MIT License**.
+Distributed under the **MIT License**. See [LICENSE](LICENSE): the original OpenSEO copyright
+notice is kept, as the license requires.

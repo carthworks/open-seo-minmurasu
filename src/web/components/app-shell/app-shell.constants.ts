@@ -43,4 +43,4 @@ export const NAV: NavGroup[] = [
 	}
 ]
 
-export const REPOSITORY_URL = 'https://github.com/alexsilver8/open-seo'
+export const REPOSITORY_URL = 'https://github.com/carthworks/open-seo-minmurasu'

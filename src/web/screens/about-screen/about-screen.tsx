@@ -159,7 +159,11 @@ const AboutScreen = (props: AboutScreenProps) => {
 				<div className="about-section-head">
 					<h2>Audit Engine & Technology</h2>
 					<p className="muted">
-						Transparent, privacy-first technical analysis powered by the open-source OpenSEO suite.
+						Transparent, privacy-first technical analysis powered by{' '}
+						<a href="https://github.com/alexsilver8/open-seo" target="_blank" rel="noreferrer">
+							OpenSEO
+						</a>
+						, the open-source SEO audit tool by Alexander Silver, released under the MIT license.
 					</p>
 				</div>
 				<div className="about-info-panel">

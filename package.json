@@ -2,14 +2,14 @@
 	"name": "open-seo-minmurasu",
 	"productName": "OpenSEO-Minmurasu",
 	"version": "0.3.0",
-	"description": "An open-source SEO audit tool by MIN MURASU: graded website reports across 9 areas, site crawler, PDF reports, social previews, and local SEO analysis.",
+	"description": "An open-source SEO audit tool by MIN MURASU: graded website reports across 10 areas, site crawler, PDF reports, social previews, and local SEO analysis.",
 	"author": "MIN MURASU <minmurasu.digital@gmail.com>",
 	"homepage": "https://www.minmurasu.digital/",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/alexsilver8/open-seo.git"
+		"url": "git+https://github.com/carthworks/open-seo-minmurasu.git"
 	},
-	"bugs": "https://www.minmurasu.digital/",
+	"bugs": "https://github.com/carthworks/open-seo-minmurasu/issues",
 	"keywords": [
 		"seo",
 		"seo-audit",
