@@ -1,7 +1,8 @@
-import { containsTerm, tokenize } from '@server/audit/keywords'
+import { containsTerm, tokenize, topKeywords } from '@server/audit/keywords'
 import type {
 	AuditCategoryResult,
 	CompetitorGap,
+	CompetitorSite,
 	KeywordCandidate,
 	KeywordPlacement,
 	PageKeywordAnalysis,
@@ -9,7 +10,67 @@ import type {
 	SearchIntent,
 	WebsiteKeywordAuditReport
 } from '@shared/keyword-audit'
-import type { CrawlWebsiteResult } from './crawler'
+import type { CrawlWebsiteResult, RawPageData } from './crawler'
+
+/** The most competitor gaps one report lists. */
+const MAX_COMPETITOR_GAPS = 15
+
+function siteText(pages: RawPageData[]): string {
+	return pages
+		.map((p) => [p.title, p.description, ...p.h1, ...p.h2, ...p.h3, p.bodyText].join(' '))
+		.join(' ')
+}
+
+/**
+ * Two-word phrases that the competitor sites use at least twice and this site never mentions,
+ * most widely used first. Only real crawls of competitor URLs the person entered count: with no
+ * competitors there are no gaps.
+ */
+export function findCompetitorGaps(
+	target: CrawlWebsiteResult,
+	competitors: CrawlWebsiteResult[]
+): CompetitorGap[] {
+	const targetText = siteText(target.pages)
+	const usage = new Map<string, Map<string, number>>()
+
+	for (const competitor of competitors) {
+		if (competitor.pages.length === 0) continue
+		const { phrases } = topKeywords(siteText(competitor.pages), 40)
+		for (const { term, count } of phrases) {
+			if (containsTerm(targetText, term)) continue
+			const byDomain = usage.get(term) ?? new Map<string, number>()
+			byDomain.set(competitor.domain, (byDomain.get(competitor.domain) ?? 0) + count)
+			usage.set(term, byDomain)
+		}
+	}
+
+	const total = (byDomain: Map<string, number>) =>
+		[...byDomain.values()].reduce((a, b) => a + b, 0)
+
+	return [...usage.entries()]
+		.sort(
+			(a, b) =>
+				b[1].size - a[1].size || total(b[1]) - total(a[1]) || a[0].localeCompare(b[0])
+		)
+		.slice(0, MAX_COMPETITOR_GAPS)
+		.map(([keyword, byDomain]) => {
+			const domains = [...byDomain.keys()]
+			const opportunity: CompetitorGap['opportunity'] =
+				domains.length >= 2 ? 'high' : total(byDomain) >= 5 ? 'medium' : 'low'
+
+			return {
+				keyword,
+				category: domains.length >= 2 ? 'Used by several competitors' : 'Used by one competitor',
+				estimatedIntent: detectIntent(keyword),
+				opportunity,
+				recommendation: `Cover "${keyword}" on the page that best matches it, if it fits what this business offers.`,
+				competitorBenchmark: [...byDomain.entries()]
+					.map(([domain, count]) => `${domain} (${count}×)`)
+					.join(', '),
+				competitors: domains
+			}
+		})
+}
 
 const INTENT_PATTERNS: Record<SearchIntent, RegExp> = {
 	transactional: /\b(buy|purchase|order|hire|pricing|price|cost|quote|discount|coupon|deal|shop|cart|checkout)\b/i,
@@ -39,7 +100,8 @@ function computeGrade(score: number): string {
 
 export function analyzeWebsiteKeywords(
 	crawlResult: CrawlWebsiteResult,
-	durationMs: number
+	durationMs: number,
+	competitorCrawls: CrawlWebsiteResult[] = []
 ): WebsiteKeywordAuditReport {
 	const { startUrl, domain, pages, totalDiscovered, sitemapFound, sitemapUrl, robotsFound, robotsUrl } = crawlResult
 	const totalWordsAllPages = pages.reduce((acc, p) => acc + p.wordCount, 0)
@@ -210,29 +272,14 @@ export function analyzeWebsiteKeywords(
 		}
 	})
 
-	// 4. Competitor Gap Analysis
-	// Identify high-value commercial keywords that the website is not actively targeting
-	const detectedNicheKeywords = [
-		'seo services', 'digital marketing agency', 'web design company',
-		'technical seo audit', 'local search optimization', 'keyword research',
-		'ecommerce seo', 'lead generation services', 'search engine marketing',
-		'conversion rate optimization', 'performance marketing', 'content marketing strategy'
-	]
-
-	const competitorGaps: CompetitorGap[] = []
-	for (const gapKw of detectedNicheKeywords) {
-		const isTargeted = allCandidates.some((c) => c.term.toLowerCase().includes(gapKw) || gapKw.includes(c.term.toLowerCase()))
-		if (!isTargeted) {
-			competitorGaps.push({
-				keyword: gapKw,
-				category: 'High-Intent Service Keyword',
-				estimatedIntent: detectIntent(gapKw),
-				opportunity: 'high',
-				recommendation: `Create a dedicated landing page or content cluster targeting "${gapKw}".`,
-				competitorBenchmark: 'Competitors frequently rank for this term to capture commercial prospective clients.'
-			})
-		}
-	}
+	// 4. Competitor gaps, from the competitor sites the person entered (none if they entered none)
+	const competitorGaps = findCompetitorGaps(crawlResult, competitorCrawls)
+	const competitorSites: CompetitorSite[] = competitorCrawls.map((c) => ({
+		url: c.startUrl,
+		domain: c.domain,
+		pagesCrawled: c.pages.length
+	}))
+	const competitorsCompared = competitorSites.filter((c) => c.pagesCrawled > 0)
 
 	// 5. Revised Meta Recommendations
 	const revisedMetas: RevisedMetaRecommendation[] = pages.slice(0, 6).map((p) => {
@@ -464,26 +511,54 @@ export function analyzeWebsiteKeywords(
 		]
 	})
 
-	// Category 9: Competitor Analysis
-	const gapScore = Math.max(50, 100 - competitorGaps.length * 10)
-	categories.push({
-		id: 'competitor',
-		name: 'Competitor & Content Gaps',
-		score: gapScore,
-		grade: computeGrade(gapScore),
-		summary: `Benchmarked against competitive industry queries. Identified ${competitorGaps.length} high-opportunity content gaps.`,
-		findings: [
-			`${competitorGaps.length} high-value commercial keywords are missing from your titles and headings`,
-			'Top missed search queries include high-converting service and agency terms'
-		],
-		recommendations: [
-			'Publish dedicated landing pages targeting the top 3 competitor gap keywords to capture prospective clients searching for competitors.'
-		],
-		metrics: [
-			{ label: 'Content Gaps', value: competitorGaps.length },
-			{ label: 'Opportunity Level', value: 'High' }
-		]
-	})
+	// Category 9: Competitor Analysis. Without competitor URLs it isn't scored.
+	if (competitorsCompared.length > 0) {
+		const highGaps = competitorGaps.filter((g) => g.opportunity === 'high').length
+		const mediumGaps = competitorGaps.filter((g) => g.opportunity === 'medium').length
+		const lowGaps = competitorGaps.length - highGaps - mediumGaps
+		const gapScore = Math.max(40, 100 - highGaps * 8 - mediumGaps * 4 - lowGaps * 2)
+		const names = competitorsCompared.map((c) => c.domain).join(', ')
+		categories.push({
+			id: 'competitor',
+			name: 'Competitor & Content Gaps',
+			score: gapScore,
+			grade: computeGrade(gapScore),
+			summary: `Compared with ${names}. Found ${competitorGaps.length} phrases they use that this site never mentions.`,
+			findings:
+				competitorGaps.length > 0
+					? [
+							`${competitorGaps.length} phrases appear on competitor pages but nowhere on this site`,
+							`${highGaps} of them are used by more than one competitor`
+						]
+					: ['This site already mentions every phrase the competitors use repeatedly'],
+			recommendations:
+				competitorGaps.length > 0
+					? [
+							'Review the phrases used by several competitors first, and cover the ones that match what this business offers.'
+						]
+					: ['Compare against more competitors, or competitors in a closer niche, to find gaps.'],
+			metrics: [
+				{ label: 'Competitors compared', value: competitorsCompared.length },
+				{ label: 'Content gaps', value: competitorGaps.length },
+				{ label: 'Used by several', value: highGaps, tone: highGaps > 0 ? 'warn' : 'pass' }
+			]
+		})
+	} else {
+		categories.push({
+			id: 'competitor',
+			name: 'Competitor & Content Gaps',
+			score: 0,
+			grade: 'N/A',
+			summary:
+				competitorSites.length > 0
+					? 'None of the competitor sites could be crawled, so there is nothing to compare. This area is left out of the overall score.'
+					: 'No competitor URLs were added to this audit, so this area is left out of the overall score.',
+			findings: [],
+			recommendations: [
+				'Run the audit again with up to 3 competitor URLs to see phrases they use that this site never mentions.'
+			]
+		})
+	}
 
 	// Category 10: Recommendations
 	const totalIssues = badTitles.length + badDescriptions.length + missingH1Pages.length + thinPages.length + missingAlt.length
@@ -505,9 +580,9 @@ export function analyzeWebsiteKeywords(
 	})
 
 	// Overall Score
-	const overallScore = Math.round(
-		categories.reduce((acc, cat) => acc + cat.score, 0) / categories.length
-	)
+	// Areas marked N/A (competitor gaps with no competitors) don't count
+	const scored = categories.filter((cat) => cat.grade !== 'N/A')
+	const overallScore = Math.round(scored.reduce((acc, cat) => acc + cat.score, 0) / scored.length)
 	const overallGrade = computeGrade(overallScore)
 
 	return {
@@ -524,6 +599,7 @@ export function analyzeWebsiteKeywords(
 		pages: pageAnalyses,
 		keywordCandidates: allCandidates,
 		competitorGaps,
+		competitors: competitorSites,
 		revisedMetas,
 		missingKeywords: competitorGaps.map((g) => g.keyword),
 		sitemapUrl,

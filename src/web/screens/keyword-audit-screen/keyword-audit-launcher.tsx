@@ -5,12 +5,22 @@ import { AuditProgressView } from '@web/components/audit-progress-view'
 import { Button } from '@web/components/button'
 import { EmptyState } from '@web/components/empty-state'
 import { Icon } from '@web/components/icon'
+import { Input } from '@web/components/input'
 import { PageHeader } from '@web/components/page-header'
 import { postForEvents } from '@web/lib/stream'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { memo, useState, type SubmitEvent } from 'react'
 import type { KeywordAuditLauncherProps } from './keyword-audit-screen.types'
+
+/** Competitor URLs separated by commas or spaces, at most 3. */
+function parseCompetitors(text: string): string[] {
+	return text
+		.split(/[\s,]+/)
+		.map((part) => part.trim())
+		.filter(Boolean)
+		.slice(0, 3)
+}
 
 const PAGE_OPTIONS = [
 	{ value: 10, label: '10 pages · Quick audit' },
@@ -49,6 +59,7 @@ const KeywordAuditLauncher = (props: KeywordAuditLauncherProps) => {
 
 	const [url, setUrl] = useState('')
 	const [maxPages, setMaxPages] = useState(defaultMaxPages)
+	const [competitors, setCompetitors] = useState('')
 	const [progress, setProgress] = useState<AuditProgress | null>(null)
 	const [error, setError] = useState<string | null>(null)
 	const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -60,7 +71,8 @@ const KeywordAuditLauncher = (props: KeywordAuditLauncherProps) => {
 		setError(null)
 		setProgress({ step: 'init', label: 'Starting website crawl and keyword audit...', pct: 2 })
 
-		await postForEvents('/api/keyword-audit', { url: url.trim(), maxPages }, (event) => {
+		const body = { url: url.trim(), maxPages, competitors: parseCompetitors(competitors) }
+		await postForEvents('/api/keyword-audit', body, (event) => {
 			if (event.type === 'progress') {
 				setProgress(event)
 			} else if (event.type === 'done') {
@@ -150,6 +162,23 @@ const KeywordAuditLauncher = (props: KeywordAuditLauncherProps) => {
 					</Button>
 				</div>
 
+				<label className="ka-competitors-field">
+					<span className="ka-competitors-label">Competitor sites (optional, up to 3)</span>
+					<Input
+						type="text"
+						inputMode="url"
+						spellCheck={false}
+						placeholder="competitor-one.com, competitor-two.com"
+						value={competitors}
+						disabled={progress !== null}
+						onChange={(e) => setCompetitors(e.currentTarget.value)}
+					/>
+					<span className="ka-competitors-hint">
+						Their pages are crawled too, to find phrases they use that this site never mentions. Leave
+						empty to skip the competitor comparison.
+					</span>
+				</label>
+
 				{progress && (
 					<div className="ka-progress-box">
 						<AuditProgressView progress={progress} />
@@ -211,7 +240,7 @@ const KeywordAuditLauncher = (props: KeywordAuditLauncherProps) => {
 					<div className="ka-area-card">
 						<span className="ka-area-num">09</span>
 						<h4>Competitor Analysis</h4>
-						<p>Competitor target benchmarks, high-value opportunities, and content gaps.</p>
+						<p>Phrases the competitor sites you enter use that this site never mentions.</p>
 					</div>
 					<div className="ka-area-card">
 						<span className="ka-area-num">10</span>

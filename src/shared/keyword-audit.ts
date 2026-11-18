@@ -64,7 +64,17 @@ export interface CompetitorGap {
 	estimatedIntent: SearchIntent
 	opportunity: 'high' | 'medium' | 'low'
 	recommendation: string
+	/** Which competitors use it and how often, like "a.com (4×), b.com (2×)". */
 	competitorBenchmark: string
+	/** The competitor domains that use it. Missing on reports made before competitor URLs. */
+	competitors?: string[]
+}
+
+/** A competitor site the person entered, and how many of its pages were crawled. */
+export interface CompetitorSite {
+	url: string
+	domain: string
+	pagesCrawled: number
 }
 
 export type KeywordAuditCategoryId =
@@ -123,6 +133,11 @@ export interface WebsiteKeywordAuditReport {
 	pages: PageKeywordAnalysis[]
 	keywordCandidates: KeywordCandidate[]
 	competitorGaps: CompetitorGap[]
+	/**
+	 * The competitor sites compared. Reports made before competitor URLs existed don't have it,
+	 * and their competitor gaps came from a fixed keyword list, so they aren't shown.
+	 */
+	competitors?: CompetitorSite[]
 	revisedMetas: RevisedMetaRecommendation[]
 	missingKeywords: string[]
 	sitemapUrl?: string

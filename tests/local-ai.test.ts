@@ -127,6 +127,7 @@ describe('Local AI Integration', () => {
 				}
 			],
 			competitorGaps: [],
+			competitors: [{ url: 'https://rival.com/', domain: 'rival.com', pagesCrawled: 3 }],
 			revisedMetas: [],
 			missingKeywords: ['conversion rate optimization']
 		} as unknown as WebsiteKeywordAuditReport

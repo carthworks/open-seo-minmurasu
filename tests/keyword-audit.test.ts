@@ -102,7 +102,8 @@ describe('Website SEO & Keyword Audit Tool', () => {
 		for (const cat of report.categories) {
 			expect(cat.score).toBeGreaterThanOrEqual(0)
 			expect(cat.score).toBeLessThanOrEqual(100)
-			expect(['A+', 'A', 'B', 'C', 'D', 'F']).toContain(cat.grade)
+			// Competitor gaps aren't graded when no competitor URLs were given
+			expect(['A+', 'A', 'B', 'C', 'D', 'F', 'N/A']).toContain(cat.grade)
 			expect(cat.summary.length).toBeGreaterThan(0)
 			expect(cat.recommendations.length).toBeGreaterThanOrEqual(1)
 		}
@@ -129,15 +130,76 @@ describe('Website SEO & Keyword Audit Tool', () => {
 		}
 	})
 
-	it('identifies competitor gaps and high-opportunity benchmark keywords', () => {
-		const report = analyzeWebsiteKeywords(mockCrawlResult, 1000)
+	const competitorSite = (domain: string, bodyText: string): CrawlWebsiteResult => ({
+		startUrl: `https://${domain}/`,
+		domain,
+		pages: [
+			{
+				...mockPage2,
+				url: `https://${domain}/`,
+				finalUrl: `https://${domain}/`,
+				title: '',
+				description: '',
+				h1: [],
+				h2: [],
+				h3: [],
+				bodyText
+			}
+		],
+		totalDiscovered: 1,
+		sitemapFound: false,
+		robotsFound: false
+	})
 
-		expect(report.competitorGaps.length).toBeGreaterThan(0)
-		for (const gap of report.competitorGaps) {
-			expect(['high', 'medium', 'low']).toContain(gap.opportunity)
-			expect(gap.keyword.length).toBeGreaterThan(0)
-			expect(gap.recommendation.length).toBeGreaterThan(0)
-		}
+	it('finds no competitor gaps and leaves the area unscored without competitors', () => {
+		const report = analyzeWebsiteKeywords(mockCrawlResult, 1000)
+		const competitor = report.categories.find((c) => c.id === 'competitor')
+
+		expect(report.competitorGaps).toEqual([])
+		expect(report.missingKeywords).toEqual([])
+		expect(report.competitors).toEqual([])
+		expect(competitor?.grade).toBe('N/A')
+		const scored = report.categories.filter((c) => c.id !== 'competitor')
+		const average = Math.round(scored.reduce((sum, c) => sum + c.score, 0) / scored.length)
+		expect(report.overallScore).toBe(average)
+	})
+
+	it('lists phrases competitors use that the site never mentions', () => {
+		const rival = competitorSite(
+			'rival.com',
+			'Wedding photography packages and wedding photography prices. Our seo services are great, seo services everywhere.'
+		)
+		const report = analyzeWebsiteKeywords(mockCrawlResult, 1000, [rival])
+		const keywords = report.competitorGaps.map((g) => g.keyword)
+
+		expect(keywords).toContain('wedding photography')
+		// The audited site already talks about SEO services, so that isn't a gap
+		expect(keywords).not.toContain('seo services')
+		const gap = report.competitorGaps.find((g) => g.keyword === 'wedding photography')
+		expect(gap?.competitors).toEqual(['rival.com'])
+		expect(gap?.competitorBenchmark).toBe('rival.com (2×)')
+		expect(report.competitors).toEqual([
+			{ url: 'https://rival.com/', domain: 'rival.com', pagesCrawled: 1 }
+		])
+		expect(report.categories.find((c) => c.id === 'competitor')?.grade).not.toBe('N/A')
+	})
+
+	it('ranks phrases used by several competitors first, as high opportunity', () => {
+		const a = competitorSite('a.com', 'Drone surveys and drone surveys. Roof repair, roof repair, roof repair.')
+		const b = competitorSite('b.com', 'We do drone surveys. Drone surveys daily.')
+		const report = analyzeWebsiteKeywords(mockCrawlResult, 1000, [a, b])
+
+		expect(report.competitorGaps[0].keyword).toBe('drone surveys')
+		expect(report.competitorGaps[0].opportunity).toBe('high')
+		expect(report.competitorGaps.find((g) => g.keyword === 'roof repair')?.opportunity).toBe('low')
+	})
+
+	it('ignores competitors that could not be crawled', () => {
+		const empty: CrawlWebsiteResult = { ...competitorSite('down.com', ''), pages: [] }
+		const report = analyzeWebsiteKeywords(mockCrawlResult, 1000, [empty])
+
+		expect(report.competitorGaps).toEqual([])
+		expect(report.categories.find((c) => c.id === 'competitor')?.grade).toBe('N/A')
 	})
 
 	it('generates turnkey revised titles and meta descriptions with rationales', () => {

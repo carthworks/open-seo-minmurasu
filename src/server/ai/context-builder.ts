@@ -52,7 +52,8 @@ export function buildKeywordAuditContext(report: WebsiteKeywordAuditReport): str
 		)
 		.join('\n')
 
-	const gaps = report.competitorGaps
+	// Older reports' gaps came from a fixed keyword list, not real competitors, so leave them out
+	const gaps = (report.competitors ? report.competitorGaps : [])
 		.slice(0, 8)
 		.map(
 			(g) =>
@@ -83,7 +84,7 @@ ${categoryLines}
 ${topKeywords || 'None'}
 
 ### Missing High-Value Keywords
-${report.missingKeywords.slice(0, 12).join(', ') || 'None'}
+${(report.competitors ? report.missingKeywords : []).slice(0, 12).join(', ') || 'None'}
 
 ### Competitor Content Gaps
 ${gaps || 'None'}

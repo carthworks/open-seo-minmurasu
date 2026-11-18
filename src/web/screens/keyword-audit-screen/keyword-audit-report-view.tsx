@@ -58,6 +58,12 @@ const KeywordAuditReportView = (props: KeywordAuditReportViewProps) => {
 	const { report, settings } = props
 
 	const [activeTab, setActiveTab] = useState<KeywordAuditCategoryId>('overview')
+
+	// Reports made before competitor URLs have no `competitors`; their gaps came from a fixed
+	// keyword list, so they aren't shown.
+	const comparedCompetitors = (report.competitors ?? []).filter((c) => c.pagesCrawled > 0)
+	const competitorGaps = report.competitors ? report.competitorGaps : []
+	const missingKeywords = report.competitors ? report.missingKeywords : []
 	const [copiedPrompt, setCopiedPrompt] = useState(false)
 
 	// Keywords tab filters
@@ -131,7 +137,7 @@ Primary Keywords: ${report.keywordCandidates
 			.map((k) => `"${k.term}" (${k.intent}, score: ${k.score})`)
 			.join(', ')}
 
-Missing High-Value Keywords: ${report.missingKeywords.slice(0, 10).join(', ')}
+Phrases competitors use that this site doesn't: ${missingKeywords.slice(0, 10).join(', ') || 'None found, or no competitors compared'}
 
 ## Recommended Revised Titles & Descriptions:
 ${revisedMetaList}
@@ -698,51 +704,77 @@ ${revisedMetaList}
 	}
 
 	const renderCompetitorTab = () => {
+		if (comparedCompetitors.length === 0) {
+			return (
+				<div className="ka-tab-content">
+					<div className="ka-section-box">
+						<h3 className="ka-section-title">Competitor content gaps</h3>
+						<p className="ka-section-desc">
+							{report.competitors && report.competitors.length > 0
+								? "None of the competitor sites added to this audit could be crawled, so there's nothing to compare."
+								: 'No competitor sites were compared in this audit. Run a new audit and add up to 3 competitor URLs to see phrases they use that this site never mentions.'}
+						</p>
+					</div>
+				</div>
+			)
+		}
+
 		return (
 			<div className="ka-tab-content">
 				<div className="ka-section-box">
-					<h3 className="ka-section-title">Competitor Keyword Benchmarks & Content Gaps</h3>
+					<h3 className="ka-section-title">Competitor content gaps</h3>
 					<p className="ka-section-desc">
-						Target commercial and transactional queries your competitors optimize for that this website is currently missing.
+						Two-word phrases that{' '}
+						{comparedCompetitors
+							.map((c) => `${c.domain} (${c.pagesCrawled} ${c.pagesCrawled === 1 ? 'page' : 'pages'})`)
+							.join(', ')}{' '}
+						use at
+						least twice and this site never mentions. Phrases used by several competitors come first.
 					</p>
-					<div className="ka-table-wrap">
-						<table className="ka-table">
-							<thead>
-								<tr>
-									<th>Keyword Opportunity</th>
-									<th>Category</th>
-									<th>Intent</th>
-									<th>Opportunity Level</th>
-									<th>Benchmark Usage</th>
-									<th>Recommendation</th>
-								</tr>
-							</thead>
-							<tbody>
-								{report.competitorGaps.map((gap) => (
-									<tr key={gap.keyword}>
-										<td>
-											<strong className="ka-kw-term">{gap.keyword}</strong>
-										</td>
-										<td>{gap.category}</td>
-										<td>
-											<span className={`ka-intent-pill ${getIntentBadgeClass(gap.estimatedIntent)}`}>
-												{gap.estimatedIntent}
-											</span>
-										</td>
-										<td>
-											<span
-												className={`badge ${gap.opportunity === 'high' ? 'badge-fail' : gap.opportunity === 'medium' ? 'badge-warn' : 'badge-pass'}`}
-											>
-												{gap.opportunity.toUpperCase()}
-											</span>
-										</td>
-										<td className="mono">{gap.competitorBenchmark}</td>
-										<td>{gap.recommendation}</td>
+					{competitorGaps.length === 0 ? (
+						<p className="ka-section-desc">
+							This site already mentions every phrase the competitors use repeatedly.
+						</p>
+					) : (
+						<div className="ka-table-wrap">
+							<table className="ka-table">
+								<thead>
+									<tr>
+										<th>Phrase</th>
+										<th>Used by</th>
+										<th>Intent</th>
+										<th>Opportunity</th>
+										<th>Where competitors use it</th>
+										<th>Recommendation</th>
 									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
+								</thead>
+								<tbody>
+									{competitorGaps.map((gap) => (
+										<tr key={gap.keyword}>
+											<td>
+												<strong className="ka-kw-term">{gap.keyword}</strong>
+											</td>
+											<td>{gap.category}</td>
+											<td>
+												<span className={`ka-intent-pill ${getIntentBadgeClass(gap.estimatedIntent)}`}>
+													{gap.estimatedIntent}
+												</span>
+											</td>
+											<td>
+												<span
+													className={`badge ${gap.opportunity === 'high' ? 'badge-fail' : gap.opportunity === 'medium' ? 'badge-warn' : 'badge-pass'}`}
+												>
+													{gap.opportunity.toUpperCase()}
+												</span>
+											</td>
+											<td className="mono">{gap.competitorBenchmark}</td>
+											<td>{gap.recommendation}</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					)}
 				</div>
 			</div>
 		)
@@ -767,17 +799,21 @@ ${revisedMetaList}
 				</div>
 
 				{/* Missing Keywords Box */}
-				<div className="ka-section-box">
-					<h3 className="ka-section-title">Missing Target Keywords</h3>
-					<p className="ka-section-desc">High-value keywords identified across topics that are not currently featured in any page title or H1 tag:</p>
-					<div className="ka-topics-wrap">
-						{report.missingKeywords.map((kw) => (
-							<span key={kw} className="ka-topic-tag ka-topic-missing">
-								+ {kw}
-							</span>
-						))}
+				{missingKeywords.length > 0 && (
+					<div className="ka-section-box">
+						<h3 className="ka-section-title">Phrases to consider adding</h3>
+						<p className="ka-section-desc">
+							Phrases the competitor sites use that this site never mentions:
+						</p>
+						<div className="ka-topics-wrap">
+							{missingKeywords.map((kw) => (
+								<span key={kw} className="ka-topic-tag ka-topic-missing">
+									+ {kw}
+								</span>
+							))}
+						</div>
 					</div>
-				</div>
+				)}
 
 				{/* Page-by-Page Revised Titles and Descriptions */}
 				<div className="ka-section-box">
@@ -916,12 +952,14 @@ ${revisedMetaList}
 							<span className="ka-exec-stat-label">Primary Keywords</span>
 						</div>
 						<div className="ka-exec-stat">
-							<span className="ka-exec-stat-num">{report.competitorGaps.length}</span>
+							<span className="ka-exec-stat-num">
+								{comparedCompetitors.length > 0 ? competitorGaps.length : '–'}
+							</span>
 							<span className="ka-exec-stat-label">Competitor Gaps</span>
 						</div>
 						<div className="ka-exec-stat">
-							<span className="ka-exec-stat-num">{report.missingKeywords.length}</span>
-							<span className="ka-exec-stat-label">Missing Targets</span>
+							<span className="ka-exec-stat-num">{comparedCompetitors.length}</span>
+							<span className="ka-exec-stat-label">Competitors Compared</span>
 						</div>
 					</div>
 				</div>

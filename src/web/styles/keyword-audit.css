@@ -51,6 +51,22 @@
 	min-width: 190px;
 }
 
+.ka-competitors-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.ka-competitors-label {
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+
+.ka-competitors-hint {
+	font-size: 0.8rem;
+	color: var(--text-muted, #4b5563);
+}
+
 .ka-progress-box {
 	margin-top: 1rem;
 	padding: 1.25rem;
