@@ -181,10 +181,10 @@ export const KEYWORD_AUDIT_PAGE_OPTIONS = [
 
 export const BACKLINK_PROVIDER_OPTIONS: { value: BacklinkProvider; label: string }[] = [
 	{ value: 'none', label: 'Not connected' },
-	{ value: 'gsc', label: 'Google Search Console' },
-	{ value: 'ahrefs', label: 'Ahrefs API' },
-	{ value: 'semrush', label: 'Semrush API' },
-	{ value: 'moz', label: 'Moz API' }
+	{ value: 'gsc', label: 'Google Search Console (coming soon)' },
+	{ value: 'ahrefs', label: 'Ahrefs API (coming soon)' },
+	{ value: 'semrush', label: 'Semrush API (coming soon)' },
+	{ value: 'moz', label: 'Moz API (coming soon)' }
 ]
 
 export const VIBECODE_STACK_OPTIONS: { value: VibecodeTargetStack; label: string }[] = [

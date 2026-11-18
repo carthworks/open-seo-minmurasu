@@ -378,7 +378,7 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 				</Row>
 				<Row
 					label="Backlink data provider"
-					note="Select your verified backlink API source. Never scrapes or fabricates data."
+					note="Backlink connections are coming soon. Until then, reports say backlink data isn't connected rather than guessing."
 					htmlFor="s-backlink-provider"
 				>
 					<select
@@ -390,7 +390,7 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 						}
 					>
 						{BACKLINK_PROVIDER_OPTIONS.map((opt) => (
-							<option key={opt.value} value={opt.value}>
+							<option key={opt.value} value={opt.value} disabled={opt.value !== 'none'}>
 								{opt.label}
 							</option>
 						))}
@@ -576,7 +576,7 @@ const SettingsScreen = (props: SettingsScreenProps) => {
 				>
 					<a
 						className="button"
-						href="https://github.com/alexsilver8/open-seo"
+						href="https://github.com/carthworks/open-seo-minmurasu"
 						target="_blank"
 						rel="noreferrer"
 					>

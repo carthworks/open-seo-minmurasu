@@ -3,6 +3,11 @@ import type { BacklinkProvider, BacklinkRecord } from '@shared/link-intelligence
 export interface BacklinkProviderClient {
 	readonly id: BacklinkProvider
 	readonly name: string
+	/**
+	 * Whether this provider's API integration is built. Until it is, the provider is never used,
+	 * even with its keys set, so reports say "not connected" instead of showing 0 backlinks.
+	 */
+	readonly available: boolean
 	isConfigured(): boolean
 	fetchBacklinks(domain: string, targetUrl?: string): Promise<BacklinkRecord[]>
 }
@@ -11,6 +16,7 @@ export interface BacklinkProviderClient {
 class GoogleSearchConsoleProvider implements BacklinkProviderClient {
 	readonly id = 'gsc'
 	readonly name = 'Google Search Console'
+	readonly available = false
 
 	isConfigured(): boolean {
 		return Boolean(process.env.GSC_CLIENT_EMAIL && process.env.GSC_PRIVATE_KEY)
@@ -27,6 +33,7 @@ class GoogleSearchConsoleProvider implements BacklinkProviderClient {
 class AhrefsProvider implements BacklinkProviderClient {
 	readonly id = 'ahrefs'
 	readonly name = 'Ahrefs API'
+	readonly available = false
 
 	isConfigured(): boolean {
 		return Boolean(process.env.AHREFS_API_KEY)
@@ -43,6 +50,7 @@ class AhrefsProvider implements BacklinkProviderClient {
 class SemrushProvider implements BacklinkProviderClient {
 	readonly id = 'semrush'
 	readonly name = 'Semrush API'
+	readonly available = false
 
 	isConfigured(): boolean {
 		return Boolean(process.env.SEMRUSH_API_KEY)
@@ -59,6 +67,7 @@ class SemrushProvider implements BacklinkProviderClient {
 class MozProvider implements BacklinkProviderClient {
 	readonly id = 'moz'
 	readonly name = 'Moz API'
+	readonly available = false
 
 	isConfigured(): boolean {
 		return Boolean(process.env.MOZ_ACCESS_ID && process.env.MOZ_SECRET_KEY)
@@ -87,7 +96,8 @@ export interface BacklinkResult {
 }
 
 /**
- * Returns backlinks from the first configured genuine provider, or reports not connected.
+ * Returns backlinks from the first provider that is built and configured, or reports not
+ * connected. None of the providers is built yet, so for now this is always not connected.
  */
 export async function getBacklinksForDomain(
 	domain: string,
@@ -105,7 +115,7 @@ export async function getBacklinksForDomain(
 	}
 
 	for (const provider of PROVIDERS) {
-		if (provider.isConfigured()) {
+		if (provider.available && provider.isConfigured()) {
 			try {
 				const backlinks = await provider.fetchBacklinks(domain, targetUrl)
 

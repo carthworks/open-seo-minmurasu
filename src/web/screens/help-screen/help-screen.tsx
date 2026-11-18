@@ -121,7 +121,7 @@ const GUIDE_SECTIONS: HelpGuideSection[] = [
 			}
 		],
 		tips: [
-			'Backlinks require a configured provider (Google Search Console, Ahrefs, Semrush, or Moz API). When no provider is connected, the UI clearly states "Backlink data not connected" instead of showing fabricated numbers.'
+			'Backlinks need a provider connection (Google Search Console, Ahrefs, Semrush or Moz), and those connections are coming soon. Until then the Backlinks card says "Backlink data not connected" instead of showing numbers it can\'t verify.'
 		]
 	},
 	{
@@ -196,7 +196,7 @@ const FAQS: HelpFaqItem[] = [
 	{
 		question: 'Why does the Backlinks card say "Backlink data not connected"?',
 		answer:
-			'OpenSEO never fabricates or scrapes third-party search index data. Backlinks are populated only when genuine API credentials (Google Search Console, Ahrefs, Semrush, or Moz) are configured in your environment.'
+			'OpenSEO never fabricates or scrapes third-party search index data. Backlinks will come from Google Search Console, Ahrefs, Semrush or Moz once those connections are built; they are coming soon, so for now no backlinks are shown.'
 	},
 	{
 		question: 'What is the difference between "New audit" and "SEO & Keywords"?',

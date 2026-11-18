@@ -167,6 +167,19 @@ describe('Link Intelligence: Backlink Provider Safety', () => {
 		expect(res.backlinks).toEqual([])
 	})
 
+	it("doesn't claim a connection for a provider whose integration isn't built, even with its key set", async () => {
+		const before = process.env.AHREFS_API_KEY
+		process.env.AHREFS_API_KEY = 'test-key'
+		try {
+			const res = await getBacklinksForDomain('example.com')
+			expect(res.connected).toBe(false)
+			expect(res.providerName).toBeUndefined()
+		} finally {
+			if (before === undefined) delete process.env.AHREFS_API_KEY
+			else process.env.AHREFS_API_KEY = before
+		}
+	})
+
 	it('accepts custom verified backlink imports when explicitly provided', async () => {
 		const mockBacklinks: BacklinkRecord[] = [
 			{
