@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio'
+import { scanAnalytics } from './analytics'
 import type { CheerioRoot, ImageInfo, LinkInfo, ParsedPage } from './context'
 import { decodeHtml, stripWww, type SafeFetchResult } from './http'
 import { readSocialMeta } from './social-meta'
@@ -146,6 +147,7 @@ export function parsePage(page: SafeFetchResult): ParsedPage {
 		images: readImages($, base),
 		...structured,
 		social: readSocialMeta($, base, structured.jsonLd.items),
-		tech: detectTechnologies(html, page.headers, generator)
+		tech: detectTechnologies(html, page.headers, generator),
+		analytics: scanAnalytics(html, $)
 	}
 }

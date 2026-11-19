@@ -192,5 +192,11 @@ export const PATHS = {
 			<rect x="13" y="13.5" width="4.5" height="4" rx="1" />
 			<path d="M10 6.5V10M4.75 13.5V10h10.5v3.5M10 10v3.5" />
 		</>
+	),
+	analytics: (
+		<>
+			<path d="M3.5 16.5h13" />
+			<path d="M5.5 16.5v-4.5M10 16.5v-8.5M14.5 16.5V5.5" strokeWidth={2.2} />
+		</>
 	)
 }

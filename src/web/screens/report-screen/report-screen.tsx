@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { AiStrategistPanel } from '@web/components/ai-strategist-panel'
 import { ReportFooter } from '@web/components/report-footer'
 import { recommendationsOf } from './report-screen.utils'
+import { AnalyticsSection } from './components/analytics-section'
 import { PriorityList } from './components/priority-list'
 import { ReportChecks } from './components/report-checks'
 import { ReportCover } from './components/report-cover'
@@ -46,6 +47,7 @@ const ReportScreen = (props: ReportScreenProps) => {
 					{report.sharing && (
 						<ShareSection sharing={report.sharing} url={report.finalUrl} />
 					)}
+					{report.analytics && <AnalyticsSection analytics={report.analytics} />}
 					<ReportChecks report={report} />
 					<ReportFooter
 						brandName={settings.brandName}

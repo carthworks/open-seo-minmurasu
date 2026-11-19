@@ -19,31 +19,31 @@ export const CATEGORIES: CategoryInfo[] = [
 		id: 'performance',
 		name: 'Performance',
 		description: 'How quickly the page arrives and how heavy it is.',
-		weight: 15
+		weight: 14
 	},
 	{
 		id: 'usability',
 		name: 'Usability',
 		description: 'How the page works on phones and for everyone using it.',
-		weight: 10
+		weight: 9
 	},
 	{
 		id: 'security',
 		name: 'Security',
 		description: 'HTTPS, certificates, headers and email authentication.',
-		weight: 10
+		weight: 9
 	},
 	{
 		id: 'links',
 		name: 'Links',
 		description: 'Broken links, link text and how the page links out.',
-		weight: 10
+		weight: 9
 	},
 	{
 		id: 'social',
 		name: 'Social',
 		description: 'How the page looks when shared, and its social profiles.',
-		weight: 8
+		weight: 7
 	},
 	{
 		id: 'ai',
@@ -68,6 +68,12 @@ export const CATEGORIES: CategoryInfo[] = [
 		name: 'Trust & E-E-A-T',
 		description: 'Author credentials, business legitimacy, policies, terms, and copyright transparency.',
 		weight: 6
+	},
+	{
+		id: 'analytics',
+		name: 'Analytics & Tracking',
+		description: 'Installed analytics, tag managers, ad pixels, implementation details and consent signals.',
+		weight: 5
 	}
 ]
 

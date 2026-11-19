@@ -3,6 +3,7 @@ import { gradeFor } from '@shared/grades'
 import type { AuditProgress, AuditReport, PageSpeedResult, ReportSource } from '@shared/types'
 import { accessibilityChecks } from './checks/accessibility'
 import { aiChecks } from './checks/ai'
+import { analyticsChecks } from './checks/analytics'
 import { linkChecks } from './checks/links'
 import { localChecks } from './checks/local'
 import { onPageChecks } from './checks/onpage'
@@ -88,7 +89,8 @@ export async function runAudit(input: string, options: AuditOptions = {}): Promi
 		...aiChecks(ctx),
 		...localChecks(ctx),
 		...accessibilityChecks(ctx),
-		...trustChecks(ctx)
+		...trustChecks(ctx),
+		...analyticsChecks(ctx)
 	]
 	const categories = scoreCategories(checks)
 	const score = overallScore(categories)
@@ -121,6 +123,7 @@ export async function runAudit(input: string, options: AuditOptions = {}): Promi
 			topKeywords: topKeywords(ctx.text, 10).single
 		},
 		sharing: ctx.sharing,
+		analytics: ctx.analytics,
 		pagespeed: ctx.pagespeed && {
 			...ctx.pagespeed,
 			// Screenshots live in the usability check; keep the report file small.
