@@ -150,9 +150,12 @@ function discoverResources($: CheerioRoot, base: URL) {
 			return
 		}
 		const inHead = $el.parents('head').length > 0
-		const deferred =
-			$el.attr('async') !== undefined || $el.attr('defer') !== undefined || type === 'module'
-		add(resolveUrl(src, base), 'script', inHead, inHead && !deferred)
+		const nonBlocking =
+			$el.attr('async') !== undefined ||
+			$el.attr('defer') !== undefined ||
+			$el.attr('nomodule') !== undefined ||
+			type === 'module'
+		add(resolveUrl(src, base), 'script', inHead, inHead && !nonBlocking)
 	})
 	$('style').each((_, el) => {
 		inlineStyleBytes += Buffer.byteLength($(el).text())
