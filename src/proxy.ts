@@ -6,7 +6,9 @@ import { NextResponse, type NextRequest } from 'next/server'
  */
 function isPublic(request: NextRequest): boolean {
 	const { pathname } = request.nextUrl
-	if (['/', '/preview'].includes(pathname) || pathname.startsWith('/report/')) return true
+	if (['/', '/preview', '/analytics', '/cro'].includes(pathname) || pathname.startsWith('/report/')) {
+		return true
+	}
 	if (pathname === '/api/audit' || pathname === '/api/preview') return true
 
 	return (

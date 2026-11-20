@@ -1,0 +1,1668 @@
+From 72338600007e876465cb37819cd1a7b1c822261f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 18 Nov 2026 08:23:35 +0000
+Subject: [PATCH 1/4] fix(keyword-audit): compare against real competitor URLs
+ instead of a fixed keyword list
+
+Competitor gaps used to be the same 12 digital-marketing phrases for every site. The keyword
+audit now takes up to 3 competitor URLs, crawls up to 10 pages of each, and lists two-word
+phrases they use at least twice that the audited site never mentions. With no competitors the
+area is marked N/A and left out of the overall score. Older reports' gaps are hidden.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01NE1gq81QVr3nNBuJfTPosV
+---
+ src/app/api/keyword-audit/route.ts            |  69 ++++++-
+ src/server/ai/context-builder.ts              |   5 +-
+ src/server/keyword-audit/analyzer.ts          | 174 +++++++++++++-----
+ src/shared/keyword-audit.ts                   |  15 ++
+ .../keyword-audit-launcher.tsx                |  33 +++-
+ .../keyword-audit-report-view.tsx             | 144 +++++++++------
+ src/web/styles/keyword-audit.css              |  16 ++
+ tests/keyword-audit.test.ts                   |  78 +++++++-
+ tests/local-ai.test.ts                        |   1 +
+ 9 files changed, 419 insertions(+), 116 deletions(-)
+
+diff --git a/src/app/api/keyword-audit/route.ts b/src/app/api/keyword-audit/route.ts
+index 69b827d..33e5393 100644
+--- a/src/app/api/keyword-audit/route.ts
++++ b/src/app/api/keyword-audit/route.ts
+@@ -1,3 +1,4 @@
++import { normalizeInputUrl, stripWww } from '@server/audit/http'
+ import { clientIp, takeRateLimit, withSlot } from '@server/limits'
+ import {
+ 	analyzeWebsiteKeywords,
+@@ -5,9 +6,39 @@ import {
+ 	listKeywordAudits,
+ 	saveKeywordAudit
+ } from '@server/keyword-audit'
++import type { CrawlWebsiteResult } from '@server/keyword-audit/crawler'
+ import { getSettings } from '@server/store'
+ import { jsonError, streamEvents } from '@server/stream'
+ 
++/** Competitor sites one keyword audit compares against, and the pages crawled on each. */
++const MAX_COMPETITORS = 3
++const COMPETITOR_PAGES = 10
++
++function hostOf(input: string): string {
++	try {
++		return stripWww(new URL(normalizeInputUrl(input)).host)
++	} catch {
++		return ''
++	}
++}
++
++/** The competitor URLs from the request: up to 3, each a different site from the target. */
++function readCompetitors(value: unknown, target: string): string[] {
++	if (!Array.isArray(value)) return []
++	const seen = new Set([hostOf(target)])
++	const urls: string[] = []
++	for (const item of value) {
++		if (typeof item !== 'string' || !item.trim()) continue
++		const host = hostOf(item)
++		if (!host || seen.has(host)) continue
++		seen.add(host)
++		urls.push(item.trim())
++		if (urls.length === MAX_COMPETITORS) break
++	}
++
++	return urls
++}
++
+ export const dynamic = 'force-dynamic'
+ export const maxDuration = 800
+ 
+@@ -18,7 +49,11 @@ export async function GET(): Promise<Response> {
+ 	return Response.json(audits)
+ }
+ 
+-/** POST /api/keyword-audit { url, maxPages? }: streams crawl and keyword audit progress */
++/**
++ * POST /api/keyword-audit { url, maxPages?, competitors? }: streams crawl and keyword audit
++ * progress. `competitors` is up to 3 competitor URLs; their pages are crawled too, to find phrases
++ * they use that the audited site doesn't.
++ */
+ export async function POST(request: Request): Promise<Response> {
+ 	const body = (await request.json().catch(() => ({}))) as Record<string, unknown>
+ 	const url = typeof body.url === 'string' ? body.url : ''
+@@ -27,6 +62,7 @@ export async function POST(request: Request): Promise<Response> {
+ 	const requested = typeof body.maxPages === 'number' ? Math.min(Math.max(body.maxPages, 1), maxAllowed) : 15
+ 
+ 	if (!url.trim()) return jsonError('Please enter a website URL to audit.', 400)
++	const competitorUrls = readCompetitors(body.competitors, url)
+ 	if (!takeRateLimit(`keyword-audit:${clientIp(request)}`)) {
+ 		return jsonError('Too many audits requested. Please try again shortly.', 429)
+ 	}
+@@ -46,6 +82,35 @@ export async function POST(request: Request): Promise<Response> {
+ 			throw new Error('Could not fetch or parse any HTML pages from the target website.')
+ 		}
+ 
++		const competitorCrawls: CrawlWebsiteResult[] = []
++		for (const [index, competitorUrl] of competitorUrls.entries()) {
++			send({
++				type: 'progress',
++				step: 'competitors',
++				label: `Crawling competitor ${index + 1} of ${competitorUrls.length}: ${competitorUrl}`,
++				pct: 86 + index
++			})
++			try {
++				competitorCrawls.push(
++					await withSlot(() =>
++						crawlWebsiteForKeywords(competitorUrl, {
++							maxPages: Math.min(requested, COMPETITOR_PAGES)
++						})
++					)
++				)
++			} catch {
++				// A competitor that can't be crawled is listed with 0 pages and left out of the comparison
++				competitorCrawls.push({
++					startUrl: competitorUrl,
++					domain: hostOf(competitorUrl) || competitorUrl,
++					pages: [],
++					totalDiscovered: 0,
++					sitemapFound: false,
++					robotsFound: false
++				})
++			}
++		}
++
+ 		send({
+ 			type: 'progress',
+ 			step: 'analyze',
+@@ -54,7 +119,7 @@ export async function POST(request: Request): Promise<Response> {
+ 		})
+ 
+ 		const durationMs = Date.now() - startTime
+-		const report = analyzeWebsiteKeywords(crawlResult, durationMs)
++		const report = analyzeWebsiteKeywords(crawlResult, durationMs, competitorCrawls)
+ 
+ 		send({
+ 			type: 'progress',
+diff --git a/src/server/ai/context-builder.ts b/src/server/ai/context-builder.ts
+index d0c472d..ec29be3 100644
+--- a/src/server/ai/context-builder.ts
++++ b/src/server/ai/context-builder.ts
+@@ -52,7 +52,8 @@ export function buildKeywordAuditContext(report: WebsiteKeywordAuditReport): str
+ 		)
+ 		.join('\n')
+ 
+-	const gaps = report.competitorGaps
++	// Older reports' gaps came from a fixed keyword list, not real competitors, so leave them out
++	const gaps = (report.competitors ? report.competitorGaps : [])
+ 		.slice(0, 8)
+ 		.map(
+ 			(g) =>
+@@ -83,7 +84,7 @@ ${categoryLines}
+ ${topKeywords || 'None'}
+ 
+ ### Missing High-Value Keywords
+-${report.missingKeywords.slice(0, 12).join(', ') || 'None'}
++${(report.competitors ? report.missingKeywords : []).slice(0, 12).join(', ') || 'None'}
+ 
+ ### Competitor Content Gaps
+ ${gaps || 'None'}
+diff --git a/src/server/keyword-audit/analyzer.ts b/src/server/keyword-audit/analyzer.ts
+index b30d0ff..7fd0357 100644
+--- a/src/server/keyword-audit/analyzer.ts
++++ b/src/server/keyword-audit/analyzer.ts
+@@ -1,7 +1,8 @@
+-import { containsTerm, tokenize } from '@server/audit/keywords'
++import { containsTerm, tokenize, topKeywords } from '@server/audit/keywords'
+ import type {
+ 	AuditCategoryResult,
+ 	CompetitorGap,
++	CompetitorSite,
+ 	KeywordCandidate,
+ 	KeywordPlacement,
+ 	PageKeywordAnalysis,
+@@ -9,7 +10,67 @@ import type {
+ 	SearchIntent,
+ 	WebsiteKeywordAuditReport
+ } from '@shared/keyword-audit'
+-import type { CrawlWebsiteResult } from './crawler'
++import type { CrawlWebsiteResult, RawPageData } from './crawler'
++
++/** The most competitor gaps one report lists. */
++const MAX_COMPETITOR_GAPS = 15
++
++function siteText(pages: RawPageData[]): string {
++	return pages
++		.map((p) => [p.title, p.description, ...p.h1, ...p.h2, ...p.h3, p.bodyText].join(' '))
++		.join(' ')
++}
++
++/**
++ * Two-word phrases that the competitor sites use at least twice and this site never mentions,
++ * most widely used first. Only real crawls of competitor URLs the person entered count: with no
++ * competitors there are no gaps.
++ */
++export function findCompetitorGaps(
++	target: CrawlWebsiteResult,
++	competitors: CrawlWebsiteResult[]
++): CompetitorGap[] {
++	const targetText = siteText(target.pages)
++	const usage = new Map<string, Map<string, number>>()
++
++	for (const competitor of competitors) {
++		if (competitor.pages.length === 0) continue
++		const { phrases } = topKeywords(siteText(competitor.pages), 40)
++		for (const { term, count } of phrases) {
++			if (containsTerm(targetText, term)) continue
++			const byDomain = usage.get(term) ?? new Map<string, number>()
++			byDomain.set(competitor.domain, (byDomain.get(competitor.domain) ?? 0) + count)
++			usage.set(term, byDomain)
++		}
++	}
++
++	const total = (byDomain: Map<string, number>) =>
++		[...byDomain.values()].reduce((a, b) => a + b, 0)
++
++	return [...usage.entries()]
++		.sort(
++			(a, b) =>
++				b[1].size - a[1].size || total(b[1]) - total(a[1]) || a[0].localeCompare(b[0])
++		)
++		.slice(0, MAX_COMPETITOR_GAPS)
++		.map(([keyword, byDomain]) => {
++			const domains = [...byDomain.keys()]
++			const opportunity: CompetitorGap['opportunity'] =
++				domains.length >= 2 ? 'high' : total(byDomain) >= 5 ? 'medium' : 'low'
++
++			return {
++				keyword,
++				category: domains.length >= 2 ? 'Used by several competitors' : 'Used by one competitor',
++				estimatedIntent: detectIntent(keyword),
++				opportunity,
++				recommendation: `Cover "${keyword}" on the page that best matches it, if it fits what this business offers.`,
++				competitorBenchmark: [...byDomain.entries()]
++					.map(([domain, count]) => `${domain} (${count}×)`)
++					.join(', '),
++				competitors: domains
++			}
++		})
++}
+ 
+ const INTENT_PATTERNS: Record<SearchIntent, RegExp> = {
+ 	transactional: /\b(buy|purchase|order|hire|pricing|price|cost|quote|discount|coupon|deal|shop|cart|checkout)\b/i,
+@@ -39,7 +100,8 @@ function computeGrade(score: number): string {
+ 
+ export function analyzeWebsiteKeywords(
+ 	crawlResult: CrawlWebsiteResult,
+-	durationMs: number
++	durationMs: number,
++	competitorCrawls: CrawlWebsiteResult[] = []
+ ): WebsiteKeywordAuditReport {
+ 	const { startUrl, domain, pages, totalDiscovered, sitemapFound, sitemapUrl, robotsFound, robotsUrl } = crawlResult
+ 	const totalWordsAllPages = pages.reduce((acc, p) => acc + p.wordCount, 0)
+@@ -210,29 +272,14 @@ export function analyzeWebsiteKeywords(
+ 		}
+ 	})
+ 
+-	// 4. Competitor Gap Analysis
+-	// Identify high-value commercial keywords that the website is not actively targeting
+-	const detectedNicheKeywords = [
+-		'seo services', 'digital marketing agency', 'web design company',
+-		'technical seo audit', 'local search optimization', 'keyword research',
+-		'ecommerce seo', 'lead generation services', 'search engine marketing',
+-		'conversion rate optimization', 'performance marketing', 'content marketing strategy'
+-	]
+-
+-	const competitorGaps: CompetitorGap[] = []
+-	for (const gapKw of detectedNicheKeywords) {
+-		const isTargeted = allCandidates.some((c) => c.term.toLowerCase().includes(gapKw) || gapKw.includes(c.term.toLowerCase()))
+-		if (!isTargeted) {
+-			competitorGaps.push({
+-				keyword: gapKw,
+-				category: 'High-Intent Service Keyword',
+-				estimatedIntent: detectIntent(gapKw),
+-				opportunity: 'high',
+-				recommendation: `Create a dedicated landing page or content cluster targeting "${gapKw}".`,
+-				competitorBenchmark: 'Competitors frequently rank for this term to capture commercial prospective clients.'
+-			})
+-		}
+-	}
++	// 4. Competitor gaps, from the competitor sites the person entered (none if they entered none)
++	const competitorGaps = findCompetitorGaps(crawlResult, competitorCrawls)
++	const competitorSites: CompetitorSite[] = competitorCrawls.map((c) => ({
++		url: c.startUrl,
++		domain: c.domain,
++		pagesCrawled: c.pages.length
++	}))
++	const competitorsCompared = competitorSites.filter((c) => c.pagesCrawled > 0)
+ 
+ 	// 5. Revised Meta Recommendations
+ 	const revisedMetas: RevisedMetaRecommendation[] = pages.slice(0, 6).map((p) => {
+@@ -464,26 +511,54 @@ export function analyzeWebsiteKeywords(
+ 		]
+ 	})
+ 
+-	// Category 9: Competitor Analysis
+-	const gapScore = Math.max(50, 100 - competitorGaps.length * 10)
+-	categories.push({
+-		id: 'competitor',
+-		name: 'Competitor & Content Gaps',
+-		score: gapScore,
+-		grade: computeGrade(gapScore),
+-		summary: `Benchmarked against competitive industry queries. Identified ${competitorGaps.length} high-opportunity content gaps.`,
+-		findings: [
+-			`${competitorGaps.length} high-value commercial keywords are missing from your titles and headings`,
+-			'Top missed search queries include high-converting service and agency terms'
+-		],
+-		recommendations: [
+-			'Publish dedicated landing pages targeting the top 3 competitor gap keywords to capture prospective clients searching for competitors.'
+-		],
+-		metrics: [
+-			{ label: 'Content Gaps', value: competitorGaps.length },
+-			{ label: 'Opportunity Level', value: 'High' }
+-		]
+-	})
++	// Category 9: Competitor Analysis. Without competitor URLs it isn't scored.
++	if (competitorsCompared.length > 0) {
++		const highGaps = competitorGaps.filter((g) => g.opportunity === 'high').length
++		const mediumGaps = competitorGaps.filter((g) => g.opportunity === 'medium').length
++		const lowGaps = competitorGaps.length - highGaps - mediumGaps
++		const gapScore = Math.max(40, 100 - highGaps * 8 - mediumGaps * 4 - lowGaps * 2)
++		const names = competitorsCompared.map((c) => c.domain).join(', ')
++		categories.push({
++			id: 'competitor',
++			name: 'Competitor & Content Gaps',
++			score: gapScore,
++			grade: computeGrade(gapScore),
++			summary: `Compared with ${names}. Found ${competitorGaps.length} phrases they use that this site never mentions.`,
++			findings:
++				competitorGaps.length > 0
++					? [
++							`${competitorGaps.length} phrases appear on competitor pages but nowhere on this site`,
++							`${highGaps} of them are used by more than one competitor`
++						]
++					: ['This site already mentions every phrase the competitors use repeatedly'],
++			recommendations:
++				competitorGaps.length > 0
++					? [
++							'Review the phrases used by several competitors first, and cover the ones that match what this business offers.'
++						]
++					: ['Compare against more competitors, or competitors in a closer niche, to find gaps.'],
++			metrics: [
++				{ label: 'Competitors compared', value: competitorsCompared.length },
++				{ label: 'Content gaps', value: competitorGaps.length },
++				{ label: 'Used by several', value: highGaps, tone: highGaps > 0 ? 'warn' : 'pass' }
++			]
++		})
++	} else {
++		categories.push({
++			id: 'competitor',
++			name: 'Competitor & Content Gaps',
++			score: 0,
++			grade: 'N/A',
++			summary:
++				competitorSites.length > 0
++					? 'None of the competitor sites could be crawled, so there is nothing to compare. This area is left out of the overall score.'
++					: 'No competitor URLs were added to this audit, so this area is left out of the overall score.',
++			findings: [],
++			recommendations: [
++				'Run the audit again with up to 3 competitor URLs to see phrases they use that this site never mentions.'
++			]
++		})
++	}
+ 
+ 	// Category 10: Recommendations
+ 	const totalIssues = badTitles.length + badDescriptions.length + missingH1Pages.length + thinPages.length + missingAlt.length
+@@ -505,9 +580,9 @@ export function analyzeWebsiteKeywords(
+ 	})
+ 
+ 	// Overall Score
+-	const overallScore = Math.round(
+-		categories.reduce((acc, cat) => acc + cat.score, 0) / categories.length
+-	)
++	// Areas marked N/A (competitor gaps with no competitors) don't count
++	const scored = categories.filter((cat) => cat.grade !== 'N/A')
++	const overallScore = Math.round(scored.reduce((acc, cat) => acc + cat.score, 0) / scored.length)
+ 	const overallGrade = computeGrade(overallScore)
+ 
+ 	return {
+@@ -524,6 +599,7 @@ export function analyzeWebsiteKeywords(
+ 		pages: pageAnalyses,
+ 		keywordCandidates: allCandidates,
+ 		competitorGaps,
++		competitors: competitorSites,
+ 		revisedMetas,
+ 		missingKeywords: competitorGaps.map((g) => g.keyword),
+ 		sitemapUrl,
+diff --git a/src/shared/keyword-audit.ts b/src/shared/keyword-audit.ts
+index 49176e4..5c0cf15 100644
+--- a/src/shared/keyword-audit.ts
++++ b/src/shared/keyword-audit.ts
+@@ -64,7 +64,17 @@ export interface CompetitorGap {
+ 	estimatedIntent: SearchIntent
+ 	opportunity: 'high' | 'medium' | 'low'
+ 	recommendation: string
++	/** Which competitors use it and how often, like "a.com (4×), b.com (2×)". */
+ 	competitorBenchmark: string
++	/** The competitor domains that use it. Missing on reports made before competitor URLs. */
++	competitors?: string[]
++}
++
++/** A competitor site the person entered, and how many of its pages were crawled. */
++export interface CompetitorSite {
++	url: string
++	domain: string
++	pagesCrawled: number
+ }
+ 
+ export type KeywordAuditCategoryId =
+@@ -123,6 +133,11 @@ export interface WebsiteKeywordAuditReport {
+ 	pages: PageKeywordAnalysis[]
+ 	keywordCandidates: KeywordCandidate[]
+ 	competitorGaps: CompetitorGap[]
++	/**
++	 * The competitor sites compared. Reports made before competitor URLs existed don't have it,
++	 * and their competitor gaps came from a fixed keyword list, so they aren't shown.
++	 */
++	competitors?: CompetitorSite[]
+ 	revisedMetas: RevisedMetaRecommendation[]
+ 	missingKeywords: string[]
+ 	sitemapUrl?: string
+diff --git a/src/web/screens/keyword-audit-screen/keyword-audit-launcher.tsx b/src/web/screens/keyword-audit-screen/keyword-audit-launcher.tsx
+index 797cbdc..90b5349 100644
+--- a/src/web/screens/keyword-audit-screen/keyword-audit-launcher.tsx
++++ b/src/web/screens/keyword-audit-screen/keyword-audit-launcher.tsx
+@@ -5,6 +5,7 @@ import { AuditProgressView } from '@web/components/audit-progress-view'
+ import { Button } from '@web/components/button'
+ import { EmptyState } from '@web/components/empty-state'
+ import { Icon } from '@web/components/icon'
++import { Input } from '@web/components/input'
+ import { PageHeader } from '@web/components/page-header'
+ import { postForEvents } from '@web/lib/stream'
+ import Link from 'next/link'
+@@ -12,6 +13,15 @@ import { useRouter } from 'next/navigation'
+ import { memo, useState, type SubmitEvent } from 'react'
+ import type { KeywordAuditLauncherProps } from './keyword-audit-screen.types'
+ 
++/** Competitor URLs separated by commas or spaces, at most 3. */
++function parseCompetitors(text: string): string[] {
++	return text
++		.split(/[\s,]+/)
++		.map((part) => part.trim())
++		.filter(Boolean)
++		.slice(0, 3)
++}
++
+ const PAGE_OPTIONS = [
+ 	{ value: 10, label: '10 pages · Quick audit' },
+ 	{ value: 15, label: '15 pages · Standard sample' },
+@@ -49,6 +59,7 @@ const KeywordAuditLauncher = (props: KeywordAuditLauncherProps) => {
+ 
+ 	const [url, setUrl] = useState('')
+ 	const [maxPages, setMaxPages] = useState(defaultMaxPages)
++	const [competitors, setCompetitors] = useState('')
+ 	const [progress, setProgress] = useState<AuditProgress | null>(null)
+ 	const [error, setError] = useState<string | null>(null)
+ 	const [deletingId, setDeletingId] = useState<string | null>(null)
+@@ -60,7 +71,8 @@ const KeywordAuditLauncher = (props: KeywordAuditLauncherProps) => {
+ 		setError(null)
+ 		setProgress({ step: 'init', label: 'Starting website crawl and keyword audit...', pct: 2 })
+ 
+-		await postForEvents('/api/keyword-audit', { url: url.trim(), maxPages }, (event) => {
++		const body = { url: url.trim(), maxPages, competitors: parseCompetitors(competitors) }
++		await postForEvents('/api/keyword-audit', body, (event) => {
+ 			if (event.type === 'progress') {
+ 				setProgress(event)
+ 			} else if (event.type === 'done') {
+@@ -150,6 +162,23 @@ const KeywordAuditLauncher = (props: KeywordAuditLauncherProps) => {
+ 					</Button>
+ 				</div>
+ 
++				<label className="ka-competitors-field">
++					<span className="ka-competitors-label">Competitor sites (optional, up to 3)</span>
++					<Input
++						type="text"
++						inputMode="url"
++						spellCheck={false}
++						placeholder="competitor-one.com, competitor-two.com"
++						value={competitors}
++						disabled={progress !== null}
++						onChange={(e) => setCompetitors(e.currentTarget.value)}
++					/>
++					<span className="ka-competitors-hint">
++						Their pages are crawled too, to find phrases they use that this site never mentions. Leave
++						empty to skip the competitor comparison.
++					</span>
++				</label>
++
+ 				{progress && (
+ 					<div className="ka-progress-box">
+ 						<AuditProgressView progress={progress} />
+@@ -211,7 +240,7 @@ const KeywordAuditLauncher = (props: KeywordAuditLauncherProps) => {
+ 					<div className="ka-area-card">
+ 						<span className="ka-area-num">09</span>
+ 						<h4>Competitor Analysis</h4>
+-						<p>Competitor target benchmarks, high-value opportunities, and content gaps.</p>
++						<p>Phrases the competitor sites you enter use that this site never mentions.</p>
+ 					</div>
+ 					<div className="ka-area-card">
+ 						<span className="ka-area-num">10</span>
+diff --git a/src/web/screens/keyword-audit-screen/keyword-audit-report-view.tsx b/src/web/screens/keyword-audit-screen/keyword-audit-report-view.tsx
+index 6212edc..53b3a04 100644
+--- a/src/web/screens/keyword-audit-screen/keyword-audit-report-view.tsx
++++ b/src/web/screens/keyword-audit-screen/keyword-audit-report-view.tsx
+@@ -58,6 +58,12 @@ const KeywordAuditReportView = (props: KeywordAuditReportViewProps) => {
+ 	const { report, settings } = props
+ 
+ 	const [activeTab, setActiveTab] = useState<KeywordAuditCategoryId>('overview')
++
++	// Reports made before competitor URLs have no `competitors`; their gaps came from a fixed
++	// keyword list, so they aren't shown.
++	const comparedCompetitors = (report.competitors ?? []).filter((c) => c.pagesCrawled > 0)
++	const competitorGaps = report.competitors ? report.competitorGaps : []
++	const missingKeywords = report.competitors ? report.missingKeywords : []
+ 	const [copiedPrompt, setCopiedPrompt] = useState(false)
+ 
+ 	// Keywords tab filters
+@@ -131,7 +137,7 @@ Primary Keywords: ${report.keywordCandidates
+ 			.map((k) => `"${k.term}" (${k.intent}, score: ${k.score})`)
+ 			.join(', ')}
+ 
+-Missing High-Value Keywords: ${report.missingKeywords.slice(0, 10).join(', ')}
++Phrases competitors use that this site doesn't: ${missingKeywords.slice(0, 10).join(', ') || 'None found, or no competitors compared'}
+ 
+ ## Recommended Revised Titles & Descriptions:
+ ${revisedMetaList}
+@@ -698,51 +704,77 @@ ${revisedMetaList}
+ 	}
+ 
+ 	const renderCompetitorTab = () => {
++		if (comparedCompetitors.length === 0) {
++			return (
++				<div className="ka-tab-content">
++					<div className="ka-section-box">
++						<h3 className="ka-section-title">Competitor content gaps</h3>
++						<p className="ka-section-desc">
++							{report.competitors && report.competitors.length > 0
++								? "None of the competitor sites added to this audit could be crawled, so there's nothing to compare."
++								: 'No competitor sites were compared in this audit. Run a new audit and add up to 3 competitor URLs to see phrases they use that this site never mentions.'}
++						</p>
++					</div>
++				</div>
++			)
++		}
++
+ 		return (
+ 			<div className="ka-tab-content">
+ 				<div className="ka-section-box">
+-					<h3 className="ka-section-title">Competitor Keyword Benchmarks & Content Gaps</h3>
++					<h3 className="ka-section-title">Competitor content gaps</h3>
+ 					<p className="ka-section-desc">
+-						Target commercial and transactional queries your competitors optimize for that this website is currently missing.
++						Two-word phrases that{' '}
++						{comparedCompetitors
++							.map((c) => `${c.domain} (${c.pagesCrawled} ${c.pagesCrawled === 1 ? 'page' : 'pages'})`)
++							.join(', ')}{' '}
++						use at
++						least twice and this site never mentions. Phrases used by several competitors come first.
+ 					</p>
+-					<div className="ka-table-wrap">
+-						<table className="ka-table">
+-							<thead>
+-								<tr>
+-									<th>Keyword Opportunity</th>
+-									<th>Category</th>
+-									<th>Intent</th>
+-									<th>Opportunity Level</th>
+-									<th>Benchmark Usage</th>
+-									<th>Recommendation</th>
+-								</tr>
+-							</thead>
+-							<tbody>
+-								{report.competitorGaps.map((gap) => (
+-									<tr key={gap.keyword}>
+-										<td>
+-											<strong className="ka-kw-term">{gap.keyword}</strong>
+-										</td>
+-										<td>{gap.category}</td>
+-										<td>
+-											<span className={`ka-intent-pill ${getIntentBadgeClass(gap.estimatedIntent)}`}>
+-												{gap.estimatedIntent}
+-											</span>
+-										</td>
+-										<td>
+-											<span
+-												className={`badge ${gap.opportunity === 'high' ? 'badge-fail' : gap.opportunity === 'medium' ? 'badge-warn' : 'badge-pass'}`}
+-											>
+-												{gap.opportunity.toUpperCase()}
+-											</span>
+-										</td>
+-										<td className="mono">{gap.competitorBenchmark}</td>
+-										<td>{gap.recommendation}</td>
++					{competitorGaps.length === 0 ? (
++						<p className="ka-section-desc">
++							This site already mentions every phrase the competitors use repeatedly.
++						</p>
++					) : (
++						<div className="ka-table-wrap">
++							<table className="ka-table">
++								<thead>
++									<tr>
++										<th>Phrase</th>
++										<th>Used by</th>
++										<th>Intent</th>
++										<th>Opportunity</th>
++										<th>Where competitors use it</th>
++										<th>Recommendation</th>
+ 									</tr>
+-								))}
+-							</tbody>
+-						</table>
+-					</div>
++								</thead>
++								<tbody>
++									{competitorGaps.map((gap) => (
++										<tr key={gap.keyword}>
++											<td>
++												<strong className="ka-kw-term">{gap.keyword}</strong>
++											</td>
++											<td>{gap.category}</td>
++											<td>
++												<span className={`ka-intent-pill ${getIntentBadgeClass(gap.estimatedIntent)}`}>
++													{gap.estimatedIntent}
++												</span>
++											</td>
++											<td>
++												<span
++													className={`badge ${gap.opportunity === 'high' ? 'badge-fail' : gap.opportunity === 'medium' ? 'badge-warn' : 'badge-pass'}`}
++												>
++													{gap.opportunity.toUpperCase()}
++												</span>
++											</td>
++											<td className="mono">{gap.competitorBenchmark}</td>
++											<td>{gap.recommendation}</td>
++										</tr>
++									))}
++								</tbody>
++							</table>
++						</div>
++					)}
+ 				</div>
+ 			</div>
+ 		)
+@@ -767,17 +799,21 @@ ${revisedMetaList}
+ 				</div>
+ 
+ 				{/* Missing Keywords Box */}
+-				<div className="ka-section-box">
+-					<h3 className="ka-section-title">Missing Target Keywords</h3>
+-					<p className="ka-section-desc">High-value keywords identified across topics that are not currently featured in any page title or H1 tag:</p>
+-					<div className="ka-topics-wrap">
+-						{report.missingKeywords.map((kw) => (
+-							<span key={kw} className="ka-topic-tag ka-topic-missing">
+-								+ {kw}
+-							</span>
+-						))}
++				{missingKeywords.length > 0 && (
++					<div className="ka-section-box">
++						<h3 className="ka-section-title">Phrases to consider adding</h3>
++						<p className="ka-section-desc">
++							Phrases the competitor sites use that this site never mentions:
++						</p>
++						<div className="ka-topics-wrap">
++							{missingKeywords.map((kw) => (
++								<span key={kw} className="ka-topic-tag ka-topic-missing">
++									+ {kw}
++								</span>
++							))}
++						</div>
+ 					</div>
+-				</div>
++				)}
+ 
+ 				{/* Page-by-Page Revised Titles and Descriptions */}
+ 				<div className="ka-section-box">
+@@ -916,12 +952,14 @@ ${revisedMetaList}
+ 							<span className="ka-exec-stat-label">Primary Keywords</span>
+ 						</div>
+ 						<div className="ka-exec-stat">
+-							<span className="ka-exec-stat-num">{report.competitorGaps.length}</span>
++							<span className="ka-exec-stat-num">
++								{comparedCompetitors.length > 0 ? competitorGaps.length : '–'}
++							</span>
+ 							<span className="ka-exec-stat-label">Competitor Gaps</span>
+ 						</div>
+ 						<div className="ka-exec-stat">
+-							<span className="ka-exec-stat-num">{report.missingKeywords.length}</span>
+-							<span className="ka-exec-stat-label">Missing Targets</span>
++							<span className="ka-exec-stat-num">{comparedCompetitors.length}</span>
++							<span className="ka-exec-stat-label">Competitors Compared</span>
+ 						</div>
+ 					</div>
+ 				</div>
+diff --git a/src/web/styles/keyword-audit.css b/src/web/styles/keyword-audit.css
+index 06ef8d7..f42502c 100644
+--- a/src/web/styles/keyword-audit.css
++++ b/src/web/styles/keyword-audit.css
+@@ -51,6 +51,22 @@
+ 	min-width: 190px;
+ }
+ 
++.ka-competitors-field {
++	display: flex;
++	flex-direction: column;
++	gap: 6px;
++}
++
++.ka-competitors-label {
++	font-size: 0.85rem;
++	font-weight: 600;
++}
++
++.ka-competitors-hint {
++	font-size: 0.8rem;
++	color: var(--text-muted, #4b5563);
++}
++
+ .ka-progress-box {
+ 	margin-top: 1rem;
+ 	padding: 1.25rem;
+diff --git a/tests/keyword-audit.test.ts b/tests/keyword-audit.test.ts
+index 64b3a20..a106ea8 100644
+--- a/tests/keyword-audit.test.ts
++++ b/tests/keyword-audit.test.ts
+@@ -102,7 +102,8 @@ describe('Website SEO & Keyword Audit Tool', () => {
+ 		for (const cat of report.categories) {
+ 			expect(cat.score).toBeGreaterThanOrEqual(0)
+ 			expect(cat.score).toBeLessThanOrEqual(100)
+-			expect(['A+', 'A', 'B', 'C', 'D', 'F']).toContain(cat.grade)
++			// Competitor gaps aren't graded when no competitor URLs were given
++			expect(['A+', 'A', 'B', 'C', 'D', 'F', 'N/A']).toContain(cat.grade)
+ 			expect(cat.summary.length).toBeGreaterThan(0)
+ 			expect(cat.recommendations.length).toBeGreaterThanOrEqual(1)
+ 		}
+@@ -129,15 +130,76 @@ describe('Website SEO & Keyword Audit Tool', () => {
+ 		}
+ 	})
+ 
+-	it('identifies competitor gaps and high-opportunity benchmark keywords', () => {
++	const competitorSite = (domain: string, bodyText: string): CrawlWebsiteResult => ({
++		startUrl: `https://${domain}/`,
++		domain,
++		pages: [
++			{
++				...mockPage2,
++				url: `https://${domain}/`,
++				finalUrl: `https://${domain}/`,
++				title: '',
++				description: '',
++				h1: [],
++				h2: [],
++				h3: [],
++				bodyText
++			}
++		],
++		totalDiscovered: 1,
++		sitemapFound: false,
++		robotsFound: false
++	})
++
++	it('finds no competitor gaps and leaves the area unscored without competitors', () => {
+ 		const report = analyzeWebsiteKeywords(mockCrawlResult, 1000)
++		const competitor = report.categories.find((c) => c.id === 'competitor')
+ 
+-		expect(report.competitorGaps.length).toBeGreaterThan(0)
+-		for (const gap of report.competitorGaps) {
+-			expect(['high', 'medium', 'low']).toContain(gap.opportunity)
+-			expect(gap.keyword.length).toBeGreaterThan(0)
+-			expect(gap.recommendation.length).toBeGreaterThan(0)
+-		}
++		expect(report.competitorGaps).toEqual([])
++		expect(report.missingKeywords).toEqual([])
++		expect(report.competitors).toEqual([])
++		expect(competitor?.grade).toBe('N/A')
++		const scored = report.categories.filter((c) => c.id !== 'competitor')
++		const average = Math.round(scored.reduce((sum, c) => sum + c.score, 0) / scored.length)
++		expect(report.overallScore).toBe(average)
++	})
++
++	it('lists phrases competitors use that the site never mentions', () => {
++		const rival = competitorSite(
++			'rival.com',
++			'Wedding photography packages and wedding photography prices. Our seo services are great, seo services everywhere.'
++		)
++		const report = analyzeWebsiteKeywords(mockCrawlResult, 1000, [rival])
++		const keywords = report.competitorGaps.map((g) => g.keyword)
++
++		expect(keywords).toContain('wedding photography')
++		// The audited site already talks about SEO services, so that isn't a gap
++		expect(keywords).not.toContain('seo services')
++		const gap = report.competitorGaps.find((g) => g.keyword === 'wedding photography')
++		expect(gap?.competitors).toEqual(['rival.com'])
++		expect(gap?.competitorBenchmark).toBe('rival.com (2×)')
++		expect(report.competitors).toEqual([
++			{ url: 'https://rival.com/', domain: 'rival.com', pagesCrawled: 1 }
++		])
++		expect(report.categories.find((c) => c.id === 'competitor')?.grade).not.toBe('N/A')
++	})
++
++	it('ranks phrases used by several competitors first, as high opportunity', () => {
++		const a = competitorSite('a.com', 'Drone surveys and drone surveys. Roof repair, roof repair, roof repair.')
++		const b = competitorSite('b.com', 'We do drone surveys. Drone surveys daily.')
++		const report = analyzeWebsiteKeywords(mockCrawlResult, 1000, [a, b])
++
++		expect(report.competitorGaps[0].keyword).toBe('drone surveys')
++		expect(report.competitorGaps[0].opportunity).toBe('high')
++		expect(report.competitorGaps.find((g) => g.keyword === 'roof repair')?.opportunity).toBe('low')
++	})
++
++	it('ignores competitors that could not be crawled', () => {
++		const empty: CrawlWebsiteResult = { ...competitorSite('down.com', ''), pages: [] }
++		const report = analyzeWebsiteKeywords(mockCrawlResult, 1000, [empty])
++
++		expect(report.competitorGaps).toEqual([])
++		expect(report.categories.find((c) => c.id === 'competitor')?.grade).toBe('N/A')
+ 	})
+ 
+ 	it('generates turnkey revised titles and meta descriptions with rationales', () => {
+diff --git a/tests/local-ai.test.ts b/tests/local-ai.test.ts
+index 2d11a32..22c92c5 100644
+--- a/tests/local-ai.test.ts
++++ b/tests/local-ai.test.ts
+@@ -127,6 +127,7 @@ describe('Local AI Integration', () => {
+ 				}
+ 			],
+ 			competitorGaps: [],
++			competitors: [{ url: 'https://rival.com/', domain: 'rival.com', pagesCrawled: 3 }],
+ 			revisedMetas: [],
+ 			missingKeywords: ['conversion rate optimization']
+ 		} as unknown as WebsiteKeywordAuditReport
+-- 
+2.43.0
+
+
+From 68487f65a9881f49f7e446e5ee26755b71808afd Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 18 Nov 2026 08:23:35 +0000
+Subject: [PATCH 2/4] fix(links): don't report unbuilt backlink providers as
+ connected
+
+The GSC, Ahrefs, Semrush and Moz providers are stubs that return no data, but setting a key
+made reports say the provider was connected with 0 backlinks. Providers now need to be marked
+available before they're used, and Settings shows them as coming soon.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01NE1gq81QVr3nNBuJfTPosV
+---
+ src/server/link-intelligence/backlinks.ts          | 14 ++++++++++++--
+ src/shared/settings.ts                             |  8 ++++----
+ src/web/screens/help-screen/help-screen.tsx        |  4 ++--
+ .../screens/settings-screen/settings-screen.tsx    |  6 +++---
+ tests/link-intelligence.test.ts                    | 13 +++++++++++++
+ 5 files changed, 34 insertions(+), 11 deletions(-)
+
+diff --git a/src/server/link-intelligence/backlinks.ts b/src/server/link-intelligence/backlinks.ts
+index 4cad1b9..9eab71c 100644
+--- a/src/server/link-intelligence/backlinks.ts
++++ b/src/server/link-intelligence/backlinks.ts
+@@ -3,6 +3,11 @@ import type { BacklinkProvider, BacklinkRecord } from '@shared/link-intelligence
+ export interface BacklinkProviderClient {
+ 	readonly id: BacklinkProvider
+ 	readonly name: string
++	/**
++	 * Whether this provider's API integration is built. Until it is, the provider is never used,
++	 * even with its keys set, so reports say "not connected" instead of showing 0 backlinks.
++	 */
++	readonly available: boolean
+ 	isConfigured(): boolean
+ 	fetchBacklinks(domain: string, targetUrl?: string): Promise<BacklinkRecord[]>
+ }
+@@ -11,6 +16,7 @@ export interface BacklinkProviderClient {
+ class GoogleSearchConsoleProvider implements BacklinkProviderClient {
+ 	readonly id = 'gsc'
+ 	readonly name = 'Google Search Console'
++	readonly available = false
+ 
+ 	isConfigured(): boolean {
+ 		return Boolean(process.env.GSC_CLIENT_EMAIL && process.env.GSC_PRIVATE_KEY)
+@@ -27,6 +33,7 @@ class GoogleSearchConsoleProvider implements BacklinkProviderClient {
+ class AhrefsProvider implements BacklinkProviderClient {
+ 	readonly id = 'ahrefs'
+ 	readonly name = 'Ahrefs API'
++	readonly available = false
+ 
+ 	isConfigured(): boolean {
+ 		return Boolean(process.env.AHREFS_API_KEY)
+@@ -43,6 +50,7 @@ class AhrefsProvider implements BacklinkProviderClient {
+ class SemrushProvider implements BacklinkProviderClient {
+ 	readonly id = 'semrush'
+ 	readonly name = 'Semrush API'
++	readonly available = false
+ 
+ 	isConfigured(): boolean {
+ 		return Boolean(process.env.SEMRUSH_API_KEY)
+@@ -59,6 +67,7 @@ class SemrushProvider implements BacklinkProviderClient {
+ class MozProvider implements BacklinkProviderClient {
+ 	readonly id = 'moz'
+ 	readonly name = 'Moz API'
++	readonly available = false
+ 
+ 	isConfigured(): boolean {
+ 		return Boolean(process.env.MOZ_ACCESS_ID && process.env.MOZ_SECRET_KEY)
+@@ -87,7 +96,8 @@ export interface BacklinkResult {
+ }
+ 
+ /**
+- * Returns backlinks from the first configured genuine provider, or reports not connected.
++ * Returns backlinks from the first provider that is built and configured, or reports not
++ * connected. None of the providers is built yet, so for now this is always not connected.
+  */
+ export async function getBacklinksForDomain(
+ 	domain: string,
+@@ -105,7 +115,7 @@ export async function getBacklinksForDomain(
+ 	}
+ 
+ 	for (const provider of PROVIDERS) {
+-		if (provider.isConfigured()) {
++		if (provider.available && provider.isConfigured()) {
+ 			try {
+ 				const backlinks = await provider.fetchBacklinks(domain, targetUrl)
+ 
+diff --git a/src/shared/settings.ts b/src/shared/settings.ts
+index 1980a4f..fe47ebc 100644
+--- a/src/shared/settings.ts
++++ b/src/shared/settings.ts
+@@ -181,10 +181,10 @@ export const KEYWORD_AUDIT_PAGE_OPTIONS = [
+ 
+ export const BACKLINK_PROVIDER_OPTIONS: { value: BacklinkProvider; label: string }[] = [
+ 	{ value: 'none', label: 'Not connected' },
+-	{ value: 'gsc', label: 'Google Search Console' },
+-	{ value: 'ahrefs', label: 'Ahrefs API' },
+-	{ value: 'semrush', label: 'Semrush API' },
+-	{ value: 'moz', label: 'Moz API' }
++	{ value: 'gsc', label: 'Google Search Console (coming soon)' },
++	{ value: 'ahrefs', label: 'Ahrefs API (coming soon)' },
++	{ value: 'semrush', label: 'Semrush API (coming soon)' },
++	{ value: 'moz', label: 'Moz API (coming soon)' }
+ ]
+ 
+ export const VIBECODE_STACK_OPTIONS: { value: VibecodeTargetStack; label: string }[] = [
+diff --git a/src/web/screens/help-screen/help-screen.tsx b/src/web/screens/help-screen/help-screen.tsx
+index f7c4f07..abc70d4 100644
+--- a/src/web/screens/help-screen/help-screen.tsx
++++ b/src/web/screens/help-screen/help-screen.tsx
+@@ -121,7 +121,7 @@ const GUIDE_SECTIONS: HelpGuideSection[] = [
+ 			}
+ 		],
+ 		tips: [
+-			'Backlinks require a configured provider (Google Search Console, Ahrefs, Semrush, or Moz API). When no provider is connected, the UI clearly states "Backlink data not connected" instead of showing fabricated numbers.'
++			'Backlinks need a provider connection (Google Search Console, Ahrefs, Semrush or Moz), and those connections are coming soon. Until then the Backlinks card says "Backlink data not connected" instead of showing numbers it can\'t verify.'
+ 		]
+ 	},
+ 	{
+@@ -196,7 +196,7 @@ const FAQS: HelpFaqItem[] = [
+ 	{
+ 		question: 'Why does the Backlinks card say "Backlink data not connected"?',
+ 		answer:
+-			'OpenSEO never fabricates or scrapes third-party search index data. Backlinks are populated only when genuine API credentials (Google Search Console, Ahrefs, Semrush, or Moz) are configured in your environment.'
++			'OpenSEO never fabricates or scrapes third-party search index data. Backlinks will come from Google Search Console, Ahrefs, Semrush or Moz once those connections are built; they are coming soon, so for now no backlinks are shown.'
+ 	},
+ 	{
+ 		question: 'What is the difference between "New audit" and "SEO & Keywords"?',
+diff --git a/src/web/screens/settings-screen/settings-screen.tsx b/src/web/screens/settings-screen/settings-screen.tsx
+index 24d838c..6d97acd 100644
+--- a/src/web/screens/settings-screen/settings-screen.tsx
++++ b/src/web/screens/settings-screen/settings-screen.tsx
+@@ -378,7 +378,7 @@ const SettingsScreen = (props: SettingsScreenProps) => {
+ 				</Row>
+ 				<Row
+ 					label="Backlink data provider"
+-					note="Select your verified backlink API source. Never scrapes or fabricates data."
++					note="Backlink connections are coming soon. Until then, reports say backlink data isn't connected rather than guessing."
+ 					htmlFor="s-backlink-provider"
+ 				>
+ 					<select
+@@ -390,7 +390,7 @@ const SettingsScreen = (props: SettingsScreenProps) => {
+ 						}
+ 					>
+ 						{BACKLINK_PROVIDER_OPTIONS.map((opt) => (
+-							<option key={opt.value} value={opt.value}>
++							<option key={opt.value} value={opt.value} disabled={opt.value !== 'none'}>
+ 								{opt.label}
+ 							</option>
+ 						))}
+@@ -576,7 +576,7 @@ const SettingsScreen = (props: SettingsScreenProps) => {
+ 				>
+ 					<a
+ 						className="button"
+-						href="https://github.com/alexsilver8/open-seo"
++						href="https://github.com/carthworks/open-seo-minmurasu"
+ 						target="_blank"
+ 						rel="noreferrer"
+ 					>
+diff --git a/tests/link-intelligence.test.ts b/tests/link-intelligence.test.ts
+index f277963..4a64cca 100644
+--- a/tests/link-intelligence.test.ts
++++ b/tests/link-intelligence.test.ts
+@@ -167,6 +167,19 @@ describe('Link Intelligence: Backlink Provider Safety', () => {
+ 		expect(res.backlinks).toEqual([])
+ 	})
+ 
++	it("doesn't claim a connection for a provider whose integration isn't built, even with its key set", async () => {
++		const before = process.env.AHREFS_API_KEY
++		process.env.AHREFS_API_KEY = 'test-key'
++		try {
++			const res = await getBacklinksForDomain('example.com')
++			expect(res.connected).toBe(false)
++			expect(res.providerName).toBeUndefined()
++		} finally {
++			if (before === undefined) delete process.env.AHREFS_API_KEY
++			else process.env.AHREFS_API_KEY = before
++		}
++	})
++
+ 	it('accepts custom verified backlink imports when explicitly provided', async () => {
+ 		const mockBacklinks: BacklinkRecord[] = [
+ 			{
+-- 
+2.43.0
+
+
+From c51b29066d7edd500b78b79f5cf2b2c21d690b69 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 18 Nov 2026 08:23:35 +0000
+Subject: [PATCH 3/4] chore: remove a stray copy of the security checks
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01NE1gq81QVr3nNBuJfTPosV
+---
+ src/server/audit/checks/security - Copy.ts | 370 ---------------------
+ 1 file changed, 370 deletions(-)
+ delete mode 100644 src/server/audit/checks/security - Copy.ts
+
+diff --git a/src/server/audit/checks/security - Copy.ts b/src/server/audit/checks/security - Copy.ts
+deleted file mode 100644
+index 618615b..0000000
+--- a/src/server/audit/checks/security - Copy.ts	
++++ /dev/null
+@@ -1,370 +0,0 @@
+-import type { AuditContext } from '@server/audit/context'
+-import { formatCount } from '@shared/format'
+-import type { CheckResult, Detail } from '@shared/types'
+-import { inCategory, listDetail, tableDetail } from './check'
+-
+-const check = inCategory('security')
+-
+-const SECURITY_HEADERS: [string, string][] = [
+-	['content-security-policy', 'Content-Security-Policy'],
+-	['x-content-type-options', 'X-Content-Type-Options'],
+-	['x-frame-options', 'X-Frame-Options'],
+-	['referrer-policy', 'Referrer-Policy'],
+-	['permissions-policy', 'Permissions-Policy']
+-]
+-
+-function httpsCheck(ctx: AuditContext): CheckResult {
+-	const base = { id: 'https', title: 'HTTPS', weight: 3, priority: 'high' as const }
+-	if (ctx.finalUrl.protocol !== 'https:') {
+-		return check({
+-			...base,
+-			status: 'fail',
+-			summary: 'The page is served over plain HTTP.',
+-			recommendation:
+-				'Serve the site over HTTPS. Browsers mark HTTP pages "Not secure" and Google uses HTTPS as a ranking signal. Let\'s Encrypt certificates are free.'
+-		})
+-	}
+-
+-	return check({ ...base, status: 'pass', summary: 'The page is served over HTTPS.' })
+-}
+-
+-function httpsRedirectCheck(ctx: AuditContext): CheckResult {
+-	const { httpRedirect } = ctx
+-	const base = {
+-		id: 'https-redirect',
+-		title: 'HTTP redirects to HTTPS',
+-		weight: 2,
+-		priority: 'high' as const
+-	}
+-	if (httpRedirect.redirectsToHttps) {
+-		return check({
+-			...base,
+-			status: 'pass',
+-			summary: 'Visitors who type http:// are sent to the secure version.'
+-		})
+-	}
+-	if (httpRedirect.error) {
+-		return check({
+-			...base,
+-			status: 'pass',
+-			summary:
+-				"The site doesn't answer on plain HTTP, so there's no insecure version to reach."
+-		})
+-	}
+-
+-	return check({
+-		...base,
+-		status: 'fail',
+-		summary: 'The http:// version of the page does not redirect to https://.',
+-		recommendation:
+-			'Add a permanent (301) redirect from HTTP to HTTPS so there is one secure version of every page.',
+-		details: httpRedirect.finalUrl ? [{ kind: 'code', text: httpRedirect.finalUrl }] : undefined
+-	})
+-}
+-
+-function certificateCheck(ctx: AuditContext): CheckResult {
+-	const { tls } = ctx
+-	const base = {
+-		id: 'ssl-certificate',
+-		title: 'SSL certificate',
+-		weight: 2,
+-		priority: 'high' as const
+-	}
+-	if (ctx.finalUrl.protocol !== 'https:' || !tls) {
+-		return check({
+-			...base,
+-			status: 'fail',
+-			summary: 'There is no SSL certificate to check.',
+-			recommendation:
+-				"Install a certificate (free from Let's Encrypt or your host) and serve the site over HTTPS."
+-		})
+-	}
+-	const details: Detail[] = [
+-		{
+-			kind: 'kv',
+-			items: [
+-				['Issued by', tls.issuer || 'Unknown'],
+-				['Issued to', tls.subject || 'Unknown'],
+-				['Valid until', tls.validTo ? new Date(tls.validTo).toDateString() : 'Unknown'],
+-				['Days left', tls.daysLeft != null ? String(tls.daysLeft) : 'Unknown'],
+-				['Protocol', tls.protocol || 'Unknown']
+-			]
+-		}
+-	]
+-	if (!tls.ok) {
+-		return check({
+-			...base,
+-			status: 'fail',
+-			summary: `The certificate isn't trusted: ${tls.error}.`,
+-			recommendation:
+-				'Renew the certificate and make sure the server sends the full certificate chain.',
+-			details
+-		})
+-	}
+-	if ((tls.daysLeft ?? 0) <= 14) {
+-		return check({
+-			...base,
+-			status: 'warn',
+-			summary: `The certificate expires in ${formatCount(tls.daysLeft ?? 0, 'day')}.`,
+-			recommendation: 'Renew it now, and set up automatic renewal so it never lapses.',
+-			details
+-		})
+-	}
+-
+-	return check({
+-		...base,
+-		status: 'pass',
+-		summary: `The certificate is valid for another ${formatCount(tls.daysLeft ?? 0, 'day')}.`,
+-		details
+-	})
+-}
+-
+-function hstsCheck(ctx: AuditContext): CheckResult {
+-	const hsts = ctx.page.headers.get('strict-transport-security')
+-	const base = { id: 'hsts', title: 'HSTS', weight: 1, priority: 'medium' as const }
+-	if (!hsts) {
+-		return check({
+-			...base,
+-			status: 'warn',
+-			summary: 'The site does not send a Strict-Transport-Security header.',
+-			recommendation:
+-				'Send Strict-Transport-Security: max-age=31536000; includeSubDomains so browsers always use HTTPS.'
+-		})
+-	}
+-
+-	return check({
+-		...base,
+-		status: 'pass',
+-		summary: 'Browsers are told to always use HTTPS.',
+-		details: [{ kind: 'code', text: hsts }]
+-	})
+-}
+-
+-function headersCheck(ctx: AuditContext): CheckResult {
+-	const { headers } = ctx.page
+-	const csp = headers.get('content-security-policy') || ''
+-	const present = SECURITY_HEADERS.map(([key, label]) => {
+-		const has =
+-			Boolean(headers.get(key)) || (key === 'x-frame-options' && /frame-ancestors/.test(csp))
+-
+-		return { label, has }
+-	})
+-	const count = present.filter((h) => h.has).length
+-	const details = [
+-		tableDetail(
+-			['Header', 'Sent'],
+-			present.map((h) => [h.label, h.has ? 'Yes' : 'No'])
+-		)
+-	]
+-	const base = {
+-		id: 'security-headers',
+-		title: 'Security headers',
+-		weight: 1,
+-		priority: 'medium' as const
+-	}
+-	const summary = `The site sends ${count} of ${SECURITY_HEADERS.length} recommended security headers.`
+-	if (count >= 4) return check({ ...base, status: 'pass', summary, details })
+-
+-	return check({
+-		...base,
+-		status: count >= 2 ? 'warn' : 'fail',
+-		summary,
+-		recommendation:
+-			'Add the missing headers at your server or CDN. They protect visitors from clickjacking, content sniffing and data leaks.',
+-		details
+-	})
+-}
+-
+-function mixedContentCheck(ctx: AuditContext): CheckResult {
+-	const base = {
+-		id: 'mixed-content',
+-		title: 'Mixed content',
+-		weight: 2,
+-		priority: 'high' as const
+-	}
+-	if (ctx.finalUrl.protocol !== 'https:') {
+-		return check({
+-			...base,
+-			status: 'info',
+-			weight: 0,
+-			summary: 'Only applies to pages served over HTTPS.'
+-		})
+-	}
+-	const { $ } = ctx
+-	const active: string[] = []
+-	const passive: string[] = []
+-	$('script[src], iframe[src], link[rel~="stylesheet"][href], object[data], embed[src]').each(
+-		(_, el) => {
+-			const url = $(el).attr('src') || $(el).attr('href') || $(el).attr('data') || ''
+-			if (/^http:\/\//i.test(url)) active.push(url)
+-		}
+-	)
+-	$('img[src], audio[src], video[src], source[src]').each((_, el) => {
+-		const url = $(el).attr('src') || ''
+-		if (/^http:\/\//i.test(url)) passive.push(url)
+-	})
+-	if (!active.length && !passive.length) {
+-		return check({
+-			...base,
+-			status: 'pass',
+-			summary: 'Everything on the page loads over HTTPS.'
+-		})
+-	}
+-
+-	return check({
+-		...base,
+-		status: active.length ? 'fail' : 'warn',
+-		summary: active.length
+-			? `${formatCount(active.length, 'script, stylesheet or frame', 'scripts, stylesheets or frames')} load over insecure HTTP and will be blocked.`
+-			: `${formatCount(passive.length, 'image or media file', 'images or media files')} load over insecure HTTP.`,
+-		recommendation:
+-			'Change these URLs to https://. Browsers block or warn about insecure files on secure pages.',
+-		details: [listDetail([...active, ...passive])]
+-	})
+-}
+-
+-function emailAuthCheck(ctx: AuditContext): CheckResult {
+-	const { dns } = ctx
+-	const spf = dns?.spf
+-	const dmarc = dns?.dmarc
+-	const details: Detail[] = [
+-		{
+-			kind: 'kv',
+-			items: [
+-				['SPF', spf || 'Not found'],
+-				['DMARC', dmarc || 'Not found'],
+-				['Mail servers', dns?.mx.slice(0, 3).join(', ') || 'None']
+-			]
+-		}
+-	]
+-	const base = {
+-		id: 'email-auth',
+-		title: 'Email authentication (SPF and DMARC)',
+-		weight: 1,
+-		priority: 'low' as const
+-	}
+-	if (spf && dmarc) {
+-		const monitorOnly = /p=none/i.test(dmarc)
+-
+-		return check({
+-			...base,
+-			status: 'pass',
+-			summary: monitorOnly
+-				? 'The domain has SPF and DMARC records (DMARC is in monitoring mode).'
+-				: 'The domain has SPF and DMARC records.',
+-			details
+-		})
+-	}
+-
+-	return check({
+-		...base,
+-		status: spf || dmarc ? 'warn' : 'fail',
+-		summary: `The domain is missing ${[!spf && 'an SPF record', !dmarc && 'a DMARC record'].filter(Boolean).join(' and ')}.`,
+-		recommendation:
+-			'Publish SPF and DMARC DNS records so nobody can send email pretending to be your domain, and so your own email lands in inboxes.',
+-		details
+-	})
+-}
+-
+-function serverSignatureCheck(ctx: AuditContext): CheckResult {
+-	const server = ctx.page.headers.get('server') || ''
+-	const poweredBy = ctx.page.headers.get('x-powered-by') || ''
+-	const leaks = [
+-		/\d/.test(server) && `Server: ${server}`,
+-		poweredBy && `X-Powered-By: ${poweredBy}`
+-	].filter(Boolean) as string[]
+-	const base = {
+-		id: 'server-signature',
+-		title: 'Server version exposure',
+-		weight: 0.5,
+-		priority: 'low' as const
+-	}
+-	if (!leaks.length) {
+-		return check({
+-			...base,
+-			status: 'pass',
+-			summary: "Headers don't reveal software versions."
+-		})
+-	}
+-
+-	return check({
+-		...base,
+-		status: 'warn',
+-		summary: 'Response headers reveal the software the site runs on.',
+-		recommendation:
+-			"Hide version numbers and remove X-Powered-By so attackers can't look up known weaknesses.",
+-		details: [listDetail(leaks)]
+-	})
+-}
+-
+-function cookiesCheck(ctx: AuditContext): CheckResult {
+-	const cookies = ctx.page.headers.getSetCookie()
+-	const https = ctx.finalUrl.protocol === 'https:'
+-	const weak = cookies.filter(
+-		(c) => (https && !/;\s*secure/i.test(c)) || !/;\s*httponly/i.test(c)
+-	)
+-	const base = { id: 'cookies', title: 'Cookie security', weight: 0.5, priority: 'low' as const }
+-	if (!cookies.length) {
+-		return check({
+-			...base,
+-			status: 'pass',
+-			summary: "The page doesn't set cookies when it loads."
+-		})
+-	}
+-	if (!weak.length) {
+-		return check({
+-			...base,
+-			status: 'pass',
+-			summary: 'Cookies are marked Secure and HttpOnly.'
+-		})
+-	}
+-
+-	return check({
+-		...base,
+-		status: 'warn',
+-		summary: `${formatCount(weak.length, 'cookie')} ${weak.length === 1 ? 'is' : 'are'} missing the Secure or HttpOnly flag.`,
+-		recommendation:
+-			'Mark cookies Secure (sent over HTTPS only) and HttpOnly (hidden from scripts) unless JavaScript needs to read them.',
+-		details: [listDetail(weak.map((c) => c.split(';')[0].split('=')[0]))]
+-	})
+-}
+-
+-function serverInfoCheck(ctx: AuditContext): CheckResult {
+-	const hosting = ctx.tech.filter((t) => ['CDN', 'Hosting', 'Web server'].includes(t.category))
+-
+-	return check({
+-		id: 'server',
+-		title: 'Server',
+-		status: 'info',
+-		weight: 0,
+-		priority: 'low',
+-		summary: hosting.length
+-			? `Served by ${hosting.map((t) => t.name).join(', ')}.`
+-			: 'Where the site is served from.',
+-		details: [
+-			{
+-				kind: 'kv',
+-				items: [
+-					['IP address', ctx.dns?.ip || 'Unknown'],
+-					['IPv6', ctx.dns?.ipv6 || 'Not available'],
+-					['Server', ctx.page.headers.get('server') || 'Not disclosed']
+-				]
+-			}
+-		]
+-	})
+-}
+-
+-export function securityChecks(ctx: AuditContext): CheckResult[] {
+-	return [
+-		httpsCheck(ctx),
+-		httpsRedirectCheck(ctx),
+-		certificateCheck(ctx),
+-		mixedContentCheck(ctx),
+-		hstsCheck(ctx),
+-		headersCheck(ctx),
+-		emailAuthCheck(ctx),
+-		cookiesCheck(ctx),
+-		serverSignatureCheck(ctx),
+-		serverInfoCheck(ctx)
+-	]
+-}
+-- 
+2.43.0
+
+
+From 5eb02837f16afc5d03539866afc73f54a200e893 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 18 Nov 2026 08:23:35 +0000
+Subject: [PATCH 4/4] docs: point repository links to this repo and credit
+ OpenSEO
+
+Repository, issue, security and source-code links pointed to the upstream alexsilver8/open-seo.
+They now point here, CODEOWNERS names carthworks, the package description says 10 areas, the
+README drops stale test counts, and the README and About page credit OpenSEO by Alexander Silver.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01NE1gq81QVr3nNBuJfTPosV
+---
+ .github/CODEOWNERS                            |  2 +-
+ .github/ISSUE_TEMPLATE/config.yml             |  2 +-
+ .github/workflows/release.yml                 |  2 +-
+ CODE_OF_CONDUCT.md                            |  2 +-
+ CONTRIBUTING.md                               |  2 +-
+ README.md                                     | 21 ++++++++++++-------
+ SECURITY.md                                   |  2 +-
+ action.yml                                    |  2 +-
+ package.json                                  |  6 +++---
+ src/server/ci/markdown.ts                     |  2 +-
+ .../app-shell/app-shell.constants.ts          |  2 +-
+ src/web/screens/about-screen/about-screen.tsx |  6 +++++-
+ tests/ci.test.ts                              |  2 +-
+ 13 files changed, 32 insertions(+), 21 deletions(-)
+
+diff --git a/.github/CODEOWNERS b/.github/CODEOWNERS
+index 39fb262..f679d6b 100644
+--- a/.github/CODEOWNERS
++++ b/.github/CODEOWNERS
+@@ -1,3 +1,3 @@
+ # Default reviewers for everything in the repository.
+ # https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+-* @alexsilver8
++* @carthworks
+diff --git a/.github/ISSUE_TEMPLATE/config.yml b/.github/ISSUE_TEMPLATE/config.yml
+index 8658d9b..783013e 100644
+--- a/.github/ISSUE_TEMPLATE/config.yml
++++ b/.github/ISSUE_TEMPLATE/config.yml
+@@ -1,5 +1,5 @@
+ blank_issues_enabled: false
+ contact_links:
+   - name: Report a security vulnerability
+-    url: https://github.com/alexsilver8/open-seo/security/advisories/new
++    url: https://github.com/carthworks/open-seo-minmurasu/security/advisories/new
+     about: Please report security issues privately, not as public issues.
+diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
+index 619a106..d3f41cf 100644
+--- a/.github/workflows/release.yml
++++ b/.github/workflows/release.yml
+@@ -82,7 +82,7 @@ jobs:
+           cache-to: type=gha,mode=max
+ 
+   # Point the major version tag (v0) at each release, so workflows using
+-  # `alexsilver8/open-seo@v0` get the latest GitHub Action without changing anything.
++  # `carthworks/open-seo-minmurasu@v0` get the latest GitHub Action without changing anything.
+   action-tag:
+     name: action-tag
+     needs: release-please
+diff --git a/CODE_OF_CONDUCT.md b/CODE_OF_CONDUCT.md
+index 9b9c066..f5553d0 100644
+--- a/CODE_OF_CONDUCT.md
++++ b/CODE_OF_CONDUCT.md
+@@ -22,7 +22,7 @@ We want openseo to be a welcoming, harassment-free community for everyone, regar
+ 
+ Maintainers may remove, edit, or reject comments, commits, code, issues and other contributions that don't follow this code of conduct, and may temporarily or permanently ban contributors for behavior they deem harmful.
+ 
+-Report unacceptable behavior to the maintainers (@alexsilver8) privately. All reports will be reviewed promptly and handled confidentially.
++Report unacceptable behavior to the maintainers (minmurasu.digital@gmail.com) privately. All reports will be reviewed promptly and handled confidentially.
+ 
+ ## Attribution
+ 
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 02e9d64..809ff29 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -211,5 +211,5 @@ Releases are automated with [release-please](https://github.com/googleapis/relea
+ reads the Conventional Commit titles merged into `main` and keeps a release pull request open
+ that bumps the version in `package.json` and adds the notes to `CHANGELOG.md`; edit the notes in
+ that pull request if they need it. Merging it tags the release, publishes a GitHub release and
+-pushes the Docker image to `ghcr.io/alexsilver8/open-seo` for Intel and ARM, tagged `latest`, the
++pushes the Docker image to `ghcr.io/carthworks/open-seo-minmurasu` for Intel and ARM, tagged `latest`, the
+ version (`0.2.0`) and the minor line (`0.2`). See `.github/workflows/release.yml`.
+diff --git a/README.md b/README.md
+index 5b94f29..6306cd7 100644
+--- a/README.md
++++ b/README.md
+@@ -55,7 +55,7 @@ Need a quick walkthrough inside the app? Visit **`/help`** (or click **Help & Ho
+ 
+ 1. **Single-Page SEO Audit (`/`)**: Enter any website URL and click **Run audit** to score 10 weighted areas (including **Trust & E-E-A-T** and **AI Search**) and export a branded PDF report.
+ 2. **VibeCode AI Prompt**: After any scan completes, click **✨ VibeCode Prompt** in the top-right action bar to open a popup modal containing all failed, warning, and low-priority issues formatted for Cursor, Claude Code, or Antigravity.
+-3. **Website SEO & Keyword Audit (`/keyword-audit`)**: Enter a prospective client URL, choose 10–50 pages, and get target keywords, search intent, heading placement, competitor gaps, revised titles/descriptions, and CSV exports.
++3. **Website SEO & Keyword Audit (`/keyword-audit`)**: Enter a prospective client URL, optionally up to 3 competitor URLs, choose 10–50 pages, and get target keywords, search intent, heading placement, competitor gaps, revised titles/descriptions, and CSV exports.
+ 4. **Link Intelligence & Domain WHOIS (`/`)**: Scroll below **"Ten areas, one grade"** on the homepage and pick any recent scan to inspect Internal Links, External Links, Backlinks, and Domain WHOIS/RDAP details.
+ 5. **Site Crawler & Sitemap Explorer (`/crawls`, `/sitemap`)**: Crawl entire domains for broken pages and duplicate metas, or inspect `sitemap.xml` URLs for batch auditing.
+ 6. **Utilities, Checklist & Monitors (`/tools`, `/checklist`, `/monitors`, `/settings`)**: Preview SERPs, generate JSON-LD Schema and AI `robots.txt` rules, track the 2027 SEO Checklist, schedule recurring monitors, and configure white-label branding.
+@@ -87,7 +87,7 @@ Built as an agency service for auditing prospective clients' websites, pitching
+ | **06. Technical SEO** | Checks Google indexability (`noindex` tags), canonical link consistency (self-referencing vs cross-domain), robots.txt accessibility, HTTP status codes, and broken links. |
+ | **07. Images** | Evaluates total images, alt text coverage percentage, and flags generic camera filenames (`IMG_001.png`, `image1.jpg`) versus keyword-rich semantic filenames. |
+ | **08. Local SEO** | Detects `LocalBusiness` Schema.org JSON-LD/microdata, location keywords in body text (cities, states, regions), clickable `tel:` links, address markers, and Google Maps embeds. |
+-| **09. Competitor analysis** | Benchmarks high-opportunity commercial and transactional search terms against industry competitors, calculates content gap opportunities (**High**, **Medium**, **Low**), and offers strategic capture advice. |
++| **09. Competitor analysis** | Add up to 3 competitor URLs: their pages are crawled too, and the report lists two-word phrases they use repeatedly that the audited site never mentions, ranked **High** (used by several competitors), **Medium** or **Low**. With no competitor URLs this area is skipped and left out of the overall score. |
+ | **10. Recommendations** | Generates missing target keyword lists, page-by-page **Revised Titles and Meta Descriptions** with before/after comparisons and strategic rationales, plus an instant **VibeCode AI Fix Prompt** to auto-remediate client codebases. |
+ 
+ - **CSV Export**: One-click downloads for `keywords.csv` (all discovered keywords with scores and placements) and `pages.csv` (page-by-page audit metrics).
+@@ -179,8 +179,8 @@ The sidebar navigation provides quick access to all platform capabilities:
+ 
+ ```bash
+ # 1. Clone the repository
+-git clone https://github.com/alexsilver8/open-seo.git
+-cd open-seo
++git clone https://github.com/carthworks/open-seo-minmurasu.git
++cd open-seo-minmurasu
+ 
+ # 2. Install dependencies
+ pnpm install
+@@ -255,7 +255,7 @@ Create a `.env.local` file to configure options:
+ ## 🛠️ Development & Testing
+ 
+ ```bash
+-# Run tests (241 unit and integration tests across 16 test files)
++# Run the unit and integration tests
+ pnpm test
+ 
+ # Run TypeScript typecheck
+@@ -279,12 +279,19 @@ pnpm format
+ │   │   └── store.ts        # JSON and Redis storage adapters
+ │   ├── shared/             # Shared types, grade definitions, formatters, and settings schema
+ │   └── web/                # React components, screens, styles, and UI hooks
+-├── tests/                  # Vitest test suites (241 tests)
++├── tests/                  # Vitest test suites
+ └── data/                   # Persistent storage (settings, crawls, reports)
+ ```
+ 
+ ---
+ 
++## 🙏 Credits
++
++OpenSEO · MIN MURASU Edition is built on [OpenSEO](https://github.com/alexsilver8/open-seo) by
++Alexander Silver. MIN MURASU added the keyword audit, link intelligence, WHOIS, AI strategist and
++agency features on top of it.
++
+ ## 📄 License
+ 
+-Distributed under the **MIT License**.
++Distributed under the **MIT License**. See [LICENSE](LICENSE): the original OpenSEO copyright
++notice is kept, as the license requires.
+diff --git a/SECURITY.md b/SECURITY.md
+index 167205d..82e1c66 100644
+--- a/SECURITY.md
++++ b/SECURITY.md
+@@ -8,7 +8,7 @@ Only the latest release receives security fixes.
+ 
+ **Please do not report security vulnerabilities through public issues, discussions, or pull requests.**
+ 
+-Report them privately through [GitHub Security Advisories](https://github.com/alexsilver8/open-seo/security/advisories/new). Include as much detail as you can:
++Report them privately through [GitHub Security Advisories](https://github.com/carthworks/open-seo-minmurasu/security/advisories/new). Include as much detail as you can:
+ 
+ - the type of issue and where it lives in the code,
+ - steps to reproduce, or a proof of concept,
+diff --git a/action.yml b/action.yml
+index 093d6a9..3d6b6dc 100644
+--- a/action.yml
++++ b/action.yml
+@@ -1,6 +1,6 @@
+ name: OpenSEO audit
+ description: Audit preview deploys with OpenSEO and fail the pull request when the SEO score drops or new problems appear.
+-author: Alexander Silver
++author: MIN MURASU (based on OpenSEO by Alexander Silver)
+ branding:
+   icon: search
+   color: green
+diff --git a/package.json b/package.json
+index d75b508..76fa299 100644
+--- a/package.json
++++ b/package.json
+@@ -2,14 +2,14 @@
+ 	"name": "open-seo-minmurasu",
+ 	"productName": "OpenSEO-Minmurasu",
+ 	"version": "0.3.0",
+-	"description": "An open-source SEO audit tool by MIN MURASU: graded website reports across 9 areas, site crawler, PDF reports, social previews, and local SEO analysis.",
++	"description": "An open-source SEO audit tool by MIN MURASU: graded website reports across 10 areas, site crawler, PDF reports, social previews, and local SEO analysis.",
+ 	"author": "MIN MURASU <minmurasu.digital@gmail.com>",
+ 	"homepage": "https://www.minmurasu.digital/",
+ 	"repository": {
+ 		"type": "git",
+-		"url": "git+https://github.com/alexsilver8/open-seo.git"
++		"url": "git+https://github.com/carthworks/open-seo-minmurasu.git"
+ 	},
+-	"bugs": "https://www.minmurasu.digital/",
++	"bugs": "https://github.com/carthworks/open-seo-minmurasu/issues",
+ 	"keywords": [
+ 		"seo",
+ 		"seo-audit",
+diff --git a/src/server/ci/markdown.ts b/src/server/ci/markdown.ts
+index e29c6b2..e49ef60 100644
+--- a/src/server/ci/markdown.ts
++++ b/src/server/ci/markdown.ts
+@@ -133,7 +133,7 @@ export function toMarkdown(results: CheckResults, version: string): string {
+ 	].filter(Boolean)
+ 	lines.push(
+ 		'',
+-		`<sub>${notes.join(' ')} Checked with [OpenSEO](https://github.com/alexsilver8/open-seo) ${version}.</sub>`
++		`<sub>${notes.join(' ')} Checked with [OpenSEO](https://github.com/carthworks/open-seo-minmurasu) ${version}.</sub>`
+ 	)
+ 	const markdown = lines.join('\n')
+ 
+diff --git a/src/web/components/app-shell/app-shell.constants.ts b/src/web/components/app-shell/app-shell.constants.ts
+index e078296..90bddc6 100644
+--- a/src/web/components/app-shell/app-shell.constants.ts
++++ b/src/web/components/app-shell/app-shell.constants.ts
+@@ -43,4 +43,4 @@ export const NAV: NavGroup[] = [
+ 	}
+ ]
+ 
+-export const REPOSITORY_URL = 'https://github.com/alexsilver8/open-seo'
++export const REPOSITORY_URL = 'https://github.com/carthworks/open-seo-minmurasu'
+diff --git a/src/web/screens/about-screen/about-screen.tsx b/src/web/screens/about-screen/about-screen.tsx
+index d0cb769..46e6acf 100644
+--- a/src/web/screens/about-screen/about-screen.tsx
++++ b/src/web/screens/about-screen/about-screen.tsx
+@@ -159,7 +159,11 @@ const AboutScreen = (props: AboutScreenProps) => {
+ 				<div className="about-section-head">
+ 					<h2>Audit Engine & Technology</h2>
+ 					<p className="muted">
+-						Transparent, privacy-first technical analysis powered by the open-source OpenSEO suite.
++						Transparent, privacy-first technical analysis powered by{' '}
++						<a href="https://github.com/alexsilver8/open-seo" target="_blank" rel="noreferrer">
++							OpenSEO
++						</a>
++						, the open-source SEO audit tool by Alexander Silver, released under the MIT license.
+ 					</p>
+ 				</div>
+ 				<div className="about-info-panel">
+diff --git a/tests/ci.test.ts b/tests/ci.test.ts
+index 4350f6b..33e7cfd 100644
+--- a/tests/ci.test.ts
++++ b/tests/ci.test.ts
+@@ -293,7 +293,7 @@ describe('toMarkdown', () => {
+ 		expect(markdown).toContain('- ✖ **title** (On-page SEO): The page has no &lt;title&gt;.')
+ 		expect(markdown).toContain('<details><summary>Every change on / (1)</summary>')
+ 		expect(markdown).toContain(
+-			'Checked with [OpenSEO](https://github.com/alexsilver8/open-seo) 0.3.0.'
++			'Checked with [OpenSEO](https://github.com/carthworks/open-seo-minmurasu) 0.3.0.'
+ 		)
+ 	})
+ 
+-- 
+2.43.0
+

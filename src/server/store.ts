@@ -1,4 +1,5 @@
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import type { Monitor } from '@shared/monitors'
@@ -23,7 +24,8 @@ import { redis, redisConfig, withRedisLock } from './redis'
  */
 // The data folder is chosen at runtime, so the bundler mustn't try to trace it.
 export const DATA_DIR = resolve(
-	/* turbopackIgnore: true */ process.env.OPENSEO_DATA_DIR || join(process.cwd(), 'data')
+	/* turbopackIgnore: true */ process.env.OPENSEO_DATA_DIR ||
+		(process.env.VERCEL ? join(tmpdir(), 'openseo-data') : join(process.cwd(), 'data'))
 )
 
 /** Upstash Redis, when it's set up. */

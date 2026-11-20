@@ -9,11 +9,11 @@ import type { HelpFaqItem, HelpGuideSection } from './help-screen.types'
 const GUIDE_SECTIONS: HelpGuideSection[] = [
 	{
 		id: 'single-audit',
-		title: 'Single-Page SEO Audit (10 Areas, One Grade)',
+		title: 'Single-Page SEO Audit (12 Areas, One Grade)',
 		badge: 'Core Audit',
 		icon: 'audit',
 		summary:
-			'Audit any single URL across 10 weighted categories — On-page SEO, Performance, Usability, Security, Links, Social, AI Search, Local SEO, Accessibility, and Trust & E-E-A-T — and generate a graded report (A+ to F).',
+			'Audit any single URL across 12 weighted categories — On-page SEO, Performance, Usability, Security, Links, Social, AI Search, Local SEO, Accessibility, Trust & E-E-A-T, Analytics & Tracking, and CRO & Lead Capture — and generate a graded report (A+ to F).',
 		href: '/',
 		ctaLabel: 'Open New Audit',
 		steps: [
@@ -25,17 +25,61 @@ const GUIDE_SECTIONS: HelpGuideSection[] = [
 			{
 				title: 'Review category grades & checks',
 				detail:
-					'Inspect passed, warning, and failed checks across all 10 categories. Filter by priority (High, Medium, Low) to focus on the biggest wins first.'
+					'Inspect passed, warning, and failed checks across all 12 categories. Filter by priority (High, Medium, Low) to focus on the biggest wins first.'
 			},
 			{
 				title: 'Export or compare',
 				detail:
-					'Use Print / PDF to export a branded report with a cover page and category grade pills, or open Compare to benchmark two URLs side by side.'
+					'Use Print / PDF to export a branded report with a cover page, category grade pills, Analytics & Tracking summary, and CRO & Lead Capture summary, or open Compare to benchmark two URLs side by side.'
 			}
 		],
 		tips: [
 			'Trust & E-E-A-T checks verify author bios, contact info, privacy policy, terms, and HTTPS trust signals.',
 			'AI Search (GEO) evaluates /llms.txt and AI crawler directives for ChatGPT, Claude, Gemini, and Perplexity.'
+		]
+	},
+	{
+		id: 'analytics-tracking',
+		title: 'Analytics & Tracking Scanner',
+		badge: 'Tracking',
+		icon: 'analytics',
+		summary:
+			'Detect installed analytics platforms, tag managers, ad pixels (GA4, Universal Analytics, GTM, Meta Pixel, Google Ads, Clarity, Hotjar, TikTok, LinkedIn, Plausible), extracted IDs, implementation summaries, and consent signals.',
+		href: '/analytics',
+		ctaLabel: 'Open Analytics Scanner',
+		steps: [
+			{
+				title: 'Run a full audit or open /analytics',
+				detail:
+					'Analytics & Tracking is included in every full audit report (and PDF) and is also available as a standalone scanner in the left navigation.'
+			},
+			{
+				title: 'Review IDs, status & implementation',
+				detail:
+					'Verify each detected tool’s status (Active, Warning, or Deprecated) and fix missing noscript fallbacks, missing IDs, or missing Consent Mode / CMP signals.'
+			}
+		]
+	},
+	{
+		id: 'cro-lead-capture',
+		title: 'CRO & Lead Capture Scanner',
+		badge: 'CRO & Leads',
+		icon: 'cro',
+		summary:
+			'Evaluate conversion readiness on any landing page: action-oriented CTAs, lead form friction, click-to-call & WhatsApp links, live chat widgets, and social proof.',
+		href: '/cro',
+		ctaLabel: 'Open CRO Scanner',
+		steps: [
+			{
+				title: 'Run a full audit or open /cro',
+				detail:
+					'CRO & Lead Capture is scored in every full audit (and PDF) and can be run standalone from the left navigation.'
+			},
+			{
+				title: 'Spot quick conversion wins',
+				detail:
+					'Check for clear primary CTAs, trim high-friction forms (>5 fields), and verify tel:/WhatsApp links, live chat widgets, and Review/AggregateRating social proof.'
+			}
 		]
 	},
 	{
@@ -100,7 +144,7 @@ const GUIDE_SECTIONS: HelpGuideSection[] = [
 		badge: 'Links & WHOIS',
 		icon: 'compare',
 		summary:
-			'Inspect every internal link, outbound external link, backlink profile, and domain WHOIS/RDAP record directly on the homepage below "Ten areas, one grade".',
+			'Inspect every internal link, outbound external link, backlink profile, and domain WHOIS/RDAP record directly on the homepage below "Twelve areas, one grade".',
 		href: '/#link-intelligence',
 		ctaLabel: 'Go to Link Intelligence',
 		steps: [
@@ -201,7 +245,7 @@ const FAQS: HelpFaqItem[] = [
 	{
 		question: 'What is the difference between "New audit" and "SEO & Keywords"?',
 		answer:
-			'"New audit" performs a deep 81-check diagnostic on a single URL across 10 weighted areas (including Performance, Security, Accessibility, and Trust & E-E-A-T). "SEO & Keywords" crawls multiple pages (10–50) across a whole website to extract target keywords, search intent, competitor gaps, and page-by-page revised meta recommendations for client proposals.'
+			'"New audit" performs a deep 90-check diagnostic on a single URL across 12 weighted areas (including Performance, Security, Accessibility, Trust & E-E-A-T, Analytics & Tracking, and CRO & Lead Capture). "SEO & Keywords" crawls multiple pages (10–50) across a whole website to extract target keywords, search intent, competitor gaps, and page-by-page revised meta recommendations for client proposals.'
 	},
 	{
 		question: 'Are timed-out or bot-blocked links marked as broken?',

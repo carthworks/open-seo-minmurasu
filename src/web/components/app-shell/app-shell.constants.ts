@@ -6,6 +6,8 @@ export const NAV: NavGroup[] = [
 		items: [
 			{ href: '/', label: 'New audit', icon: 'audit' },
 			{ href: '/keyword-audit', label: 'SEO & Keywords', icon: 'search' },
+			{ href: '/analytics', label: 'Analytics & Tracking', icon: 'analytics' },
+			{ href: '/cro', label: 'CRO & Lead Capture', icon: 'cro' },
 			{ href: '/preview', label: 'Share preview', icon: 'image' },
 			{ href: '/history', label: 'History', icon: 'clock' },
 			{ href: '/compare', label: 'Compare', icon: 'compare' }

@@ -4,7 +4,7 @@
 
 # OpenSEO · MIN MURASU Edition
 
-An open-source, full-stack SEO audit and digital marketing platform powered by **MIN MURASU** and OpenSEO. Enter any website URL to receive an in-depth, graded report (**A+** to **F**) across **10 critical audit categories** with **81 automated checks**, actionable prioritized recommendations, live SEO utilities, and white-labeled PDF export capabilities.
+An open-source, full-stack SEO audit and digital marketing platform powered by **MIN MURASU** and OpenSEO. Enter any website URL to receive an in-depth, graded report (**A+** to **F**) across **12 critical audit categories** with **90 automated checks**, actionable prioritized recommendations, live SEO utilities, and white-labeled PDF export capabilities.
 
 > **Turn Digital Attention Into Business Growth**  
 > Comprehensive Technical SEO, Local Search Dominance, Speed Optimization, and AI Answer Engine Readiness.
@@ -30,7 +30,9 @@ An open-source, full-stack SEO audit and digital marketing platform powered by *
 - **🔍 Website SEO & Keyword Audit Tool (10-Area Client Proposal Service)**: A specialized agency service module built for auditing prospective clients' websites. Accepts any website URL, crawls multiple pages, and extracts target keywords, search intent, heading hierarchy, technical compliance, competitor gaps, and turnkey revised titles and meta descriptions across 10 dedicated audit categories.
 - **🔗 Link Intelligence Module**: Deep link discovery, categorization, and analysis directly on the homepage. Discovers all internal links, outbound external links, and genuine backlinks with summary cards, issue detection, interactive paginated data tables, search, filters, and CSV export.
 - **✨ VibeCode Prompt Generator**: Instant AI prompt generator that packages all failed checks, warnings, and low-priority fixes into a clean markdown prompt ready to feed directly into **Cursor, Claude Code, Lovable, v0, Antigravity**, or any AI coding assistant to auto-remediate your codebase.
-- **Comprehensive 10-Area Audits**: 81 automated diagnostic checks evaluated in seconds, weighted into one unified grade.
+- **Comprehensive 12-Area Audits**: 90 automated diagnostic checks evaluated in seconds, weighted into one unified grade.
+- **📊 Analytics & Tracking Scanner (`/analytics`)**: Detects GA4, Universal Analytics (deprecated), Google Tag Manager, Meta Pixel (Facebook), Google Ads, Microsoft Clarity, Hotjar, TikTok, LinkedIn, Pinterest, X, Plausible, Fathom, Matomo, PostHog, Mixpanel, HubSpot, and CMP/Consent Mode signals with IDs, status, and implementation summaries.
+- **🎯 CRO & Lead Capture Scanner (`/cro`)**: Evaluates action-oriented CTAs, lead capture forms and field friction, click-to-call (`tel:`) & WhatsApp links, live chat widgets, and social proof (`Review` / `AggregateRating` schema, testimonials).
 - **Actionable Prioritized Fixes**: Every issue is categorized by severity (`High`, `Medium`, `Low`) with step-by-step instructions and code snippets.
 - **Site-Wide Crawler**: Crawls entire websites to detect broken links, duplicate titles, missing descriptions, thin content, and indexability issues.
 - **Direct Lead Generation**: Generated reports include direct **Call**, **WhatsApp**, and **Email** buttons for instant client outreach.
@@ -53,7 +55,8 @@ An open-source, full-stack SEO audit and digital marketing platform powered by *
 
 Need a quick walkthrough inside the app? Visit **`/help`** (or click **Help & How-to** in the sidebar under **Workspace**).
 
-1. **Single-Page SEO Audit (`/`)**: Enter any website URL and click **Run audit** to score 10 weighted areas (including **Trust & E-E-A-T** and **AI Search**) and export a branded PDF report.
+1. **Single-Page SEO Audit (`/`)**: Enter any website URL and click **Run audit** to score 12 weighted areas (including **Trust & E-E-A-T**, **AI Search**, **Analytics & Tracking**, and **CRO & Lead Capture**) and export a branded PDF report.
+2. **Analytics & CRO Scanners (`/analytics`, `/cro`)**: Inspect installed tracking pixels/IDs and conversion readiness directly from the left navigation or inside every full audit report and PDF.
 2. **VibeCode AI Prompt**: After any scan completes, click **✨ VibeCode Prompt** in the top-right action bar to open a popup modal containing all failed, warning, and low-priority issues formatted for Cursor, Claude Code, or Antigravity.
 3. **Website SEO & Keyword Audit (`/keyword-audit`)**: Enter a prospective client URL, choose 10–50 pages, and get target keywords, search intent, heading placement, competitor gaps, revised titles/descriptions, and CSV exports.
 4. **Link Intelligence & Domain WHOIS (`/`)**: Scroll below **"Ten areas, one grade"** on the homepage and pick any recent scan to inspect Internal Links, External Links, Backlinks, and Domain WHOIS/RDAP details.
@@ -125,22 +128,24 @@ The Link Intelligence module provides total visibility into your internal linkin
 
 ---
 
-## 📊 The 10 Audit Areas
+## 📊 The 12 Audit Areas
 
 Each area is scored individually and weighted into an overall grade from **A+** (95+) to **F** (<40):
 
 | Category | Weight | What It Checks |
 | :--- | :---: | :--- |
 | **On-page SEO** | **22%** | Titles, meta descriptions, Google search preview, `<h1>` consistency, content volume, keyword density, image `alt` tags, canonical tags, indexability, XML sitemaps, language declarations. |
-| **Performance** | **15%** | Core Web Vitals (Google PageSpeed Insights), TTFB server response time, download speeds, total page weight, asset compression (Brotli/Gzip), render-blocking files, image dimensions, lazy loading, DOM node depth. |
-| **Usability** | **10%** | Responsive mobile viewports, mobile and desktop screenshots, font legibility, touch target sizing, favicon coverage, Apple touch icons, web app manifest (`manifest.json`), theme colors, deprecated HTML. |
-| **Security** | **10%** | Full HTTPS enforcement, HTTP-to-HTTPS redirects, SSL certificate validity and expiration dates, mixed content detection, HSTS headers, security headers (CSP, X-Frame-Options, nosniff), SPF and DMARC email authentication records. |
-| **Links** | **10%** | Live broken link detection (internal and external), link text quality, anchor text descriptiveness, nofollow vs dofollow distribution, redirect chains. |
-| **Social** | **8%** | Open Graph meta tags (`og:title`, `og:description`, `og:image`), share image validation (resolution, aspect ratio, file size), Twitter/X Card markup, verified social media profiles. |
-| **AI search** | **7%** | AI search and training crawler access in `robots.txt` (`GPTBot`, `Claude-SearchBot`, `PerplexityBot`), server-rendered content without JavaScript, semantic HTML markup, `/llms.txt` discovery. |
-| **Local SEO** | **6%** | `schema.org/LocalBusiness` structured data, Name-Address-Phone (NAP) consistency, clickable `tel:` links, physical address presence, Google Maps embeds, and Google Business Profile links. |
-| **Accessibility** | **6%** | WCAG heading hierarchy (ensuring unskipped `<h1>` through `<h6>` tags), accessible form `<label>` associations, non-empty button and link accessible names, semantic landmark regions (`<main>`, `<nav>`, `<header>`, `<footer>`). |
-| **Trust & E-E-A-T** | **6%** | Author & editorial transparency (`Person`/author schema, rel="author", bylines), Privacy Policy links, Terms of Service links, accessible About and Contact page references, copyright notice & year freshness. |
+| **Performance** | **13%** | Core Web Vitals (Google PageSpeed Insights), TTFB server response time, download speeds, total page weight, asset compression (Brotli/Gzip), render-blocking files, image dimensions, lazy loading, DOM node depth. |
+| **Usability** | **9%** | Responsive mobile viewports, mobile and desktop screenshots, font legibility, touch target sizing, favicon coverage, Apple touch icons, web app manifest (`manifest.json`), theme colors, deprecated HTML. |
+| **Security** | **9%** | Full HTTPS enforcement, HTTP-to-HTTPS redirects, SSL certificate validity and expiration dates, mixed content detection, HSTS headers, security headers (CSP, X-Frame-Options, nosniff), SPF and DMARC email authentication records. |
+| **Links** | **9%** | Live broken link detection (internal and external), link text quality, anchor text descriptiveness, nofollow vs dofollow distribution, redirect chains. |
+| **Social** | **7%** | Open Graph meta tags (`og:title`, `og:description`, `og:image`), share image validation (resolution, aspect ratio, file size), Twitter/X Card markup, verified social media profiles. |
+| **AI search** | **6%** | AI search and training crawler access in `robots.txt` (`GPTBot`, `Claude-SearchBot`, `PerplexityBot`), server-rendered content without JavaScript, semantic HTML markup, `/llms.txt` discovery. |
+| **Local SEO** | **5%** | `schema.org/LocalBusiness` structured data, Name-Address-Phone (NAP) consistency, clickable `tel:` links, physical address presence, Google Maps embeds, and Google Business Profile links. |
+| **Accessibility** | **5%** | WCAG heading hierarchy (ensuring unskipped `<h1>` through `<h6>` tags), accessible form `<label>` associations, non-empty button and link accessible names, semantic landmark regions (`<main>`, `<nav>`, `<header>`, `<footer>`). |
+| **Trust & E-E-A-T** | **5%** | Author & editorial transparency (`Person`/author schema, rel="author", bylines), Privacy Policy links, Terms of Service links, accessible About and Contact page references, copyright notice & year freshness. |
+| **Analytics & Tracking** | **5%** | GA4, Universal Analytics (deprecated), GTM, Meta Pixel, Google Ads, Clarity, Hotjar, TikTok, LinkedIn, Pinterest, X, Plausible, Fathom, Matomo, PostHog, Mixpanel, HubSpot, and CMP/Consent Mode signals. |
+| **CRO & Lead Capture** | **5%** | Action-oriented CTAs, lead capture forms and field friction, embedded booking/form tools, click-to-call (`tel:`) & WhatsApp links, live chat widgets, and social proof signals. |
 
 ---
 
@@ -149,7 +154,10 @@ Each area is scored individually and weighted into an overall grade from **A+** 
 The sidebar navigation provides quick access to all platform capabilities:
 
 - **Audit**:
-  - `New audit` (`/`) — Grade any URL across 10 areas and 81 checks.
+  - `New audit` (`/`) — Grade any URL across 12 areas and 90 checks.
+  - `SEO & Keywords` (`/keyword-audit`) — Multi-page client keyword & proposal audit.
+  - `Analytics & Tracking` (`/analytics`) — Scan installed analytics, tag managers, pixels, and consent signals.
+  - `CRO & Lead Capture` (`/cro`) — Audit CTAs, lead form friction, WhatsApp/chat, and social proof.
   - `Share preview` (`/preview`) — Inspect how links look across Google, WhatsApp, Facebook, X, and LinkedIn.
   - `History` (`/history`) — Search and browse all past audits.
   - `Compare` (`/compare`) — Side-by-side comparative analysis of two URLs.

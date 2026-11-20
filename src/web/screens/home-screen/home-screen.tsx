@@ -13,13 +13,13 @@ const HomeScreen = (props: HomeScreenProps) => {
 	return (
 		<div className="home">
 			<section className="home-hero">
-				<span className="eyebrow">{brandName} · Powered by OpenSEO · 10 Areas · 81 Checks</span>
+				<span className="eyebrow">{brandName} · Powered by OpenSEO · 12 Areas · 90 Checks</span>
 				<h1>
 					Find what&apos;s <span className="highlight">holding your site</span> back
 				</h1>
 				<p className="home-lede">
 					Paste a URL. {brandName} grades on-page SEO, speed, links, usability,
-					security, AI search, local SEO, accessibility, and trust &amp; E-E-A-T — built for conversion rate optimization, lead generation services, and instant VibeCode fixes.
+					security, AI search, local SEO, accessibility, trust &amp; E-E-A-T, analytics &amp; tracking, and CRO &amp; lead capture — built for conversion rate optimization, lead generation services, and instant VibeCode fixes.
 				</p>
 				<AuditForm pagespeedEnabled={pagespeedEnabled} />
 			</section>
@@ -42,6 +42,22 @@ const HomeScreen = (props: HomeScreenProps) => {
 							</p>
 						</div>
 					</div>
+					<Link href="/analytics" className="home-feature-card">
+						<span className="home-feature-icon" aria-hidden="true">📊</span>
+						<div>
+							<h3>Analytics &amp; Tracking Scanner</h3>
+							<p>Detect GA4, GTM, Meta Pixel, Google Ads, Clarity, Hotjar, TikTok, LinkedIn, and consent signals with IDs and status.</p>
+						</div>
+						<span className="home-feature-arrow" aria-hidden="true">→</span>
+					</Link>
+					<Link href="/cro" className="home-feature-card">
+						<span className="home-feature-icon" aria-hidden="true">🎯</span>
+						<div>
+							<h3>CRO &amp; Lead Capture Scanner</h3>
+							<p>Audit CTAs, lead form friction, click-to-call &amp; WhatsApp links, live chat widgets, and social proof signals.</p>
+						</div>
+						<span className="home-feature-arrow" aria-hidden="true">→</span>
+					</Link>
 					<Link href="/tools" className="home-feature-card">
 						<span className="home-feature-icon" aria-hidden="true">🛠️</span>
 						<div>
@@ -71,7 +87,7 @@ const HomeScreen = (props: HomeScreenProps) => {
 
 			<section className="home-section" aria-labelledby="checks-title">
 				<div className="home-section-head">
-					<h2 id="checks-title">Ten areas, one grade</h2>
+					<h2 id="checks-title">Twelve areas, one grade</h2>
 					<p className="muted">
 						Each area gets its own score, weighted by how much it matters for search.
 					</p>

@@ -15,6 +15,8 @@ export type CategoryId =
 	| 'local'
 	| 'accessibility'
 	| 'trust'
+	| 'analytics'
+	| 'cro'
 
 /** Structured evidence for a check, rendered by the report's detail blocks. */
 export type Detail =
@@ -82,6 +84,59 @@ export interface Technology {
 	category: string
 }
 
+export type TrackingToolStatus = 'active' | 'warning' | 'deprecated'
+
+export interface DetectedTrackingTool {
+	id: string
+	name: string
+	category: string
+	status: TrackingToolStatus
+	statusLabel: string
+	ids: string[]
+	implementation: string
+}
+
+export interface AnalyticsScanResult {
+	tools: DetectedTrackingTool[]
+	hasConsentSignal: boolean
+	consentSummary: string
+}
+
+export interface AnalyticsScanPreview {
+	url: string
+	finalUrl: string
+	title: string
+	analytics: AnalyticsScanResult
+}
+
+export interface CroSignal {
+	id: string
+	name: string
+	category: string
+	status: Status
+	statusLabel: string
+	implementation: string
+}
+
+export interface CroScanResult {
+	signals: CroSignal[]
+	ctaCount: number
+	ctaSamples: string[]
+	leadFormCount: number
+	maxFormFields: number
+	hasPhoneLink: boolean
+	hasWhatsApp: boolean
+	liveChatTools: string[]
+	hasSocialProof: boolean
+}
+
+export interface CroScanPreview {
+	url: string
+	finalUrl: string
+	title: string
+	cro: CroScanResult
+}
+
 export interface AuditOverview {
 	title: string
 	description: string
@@ -117,6 +172,10 @@ export interface AuditReport {
 	pagespeed?: PageSpeedResult
 	/** Share previews, images and icons. Missing on reports made before they existed. */
 	sharing?: SharingReport
+	/** Detected analytics and tracking tools. */
+	analytics?: AnalyticsScanResult
+	/** Conversion rate optimization and lead capture signals. */
+	cro?: CroScanResult
 	source: ReportSource
 }
 
