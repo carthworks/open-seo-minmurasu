@@ -94,12 +94,18 @@ function googleAnalyticsAndGtmCheck(ctx: AuditContext): CheckResult {
 
 	const warnings = [ga4, gtm].filter((t) => t && t.status !== 'active')
 	if (warnings.length > 0) {
+		const gtmNoscriptHint =
+			gtm && gtm.status !== 'active' && gtm.ids[0]
+				? ` Add <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${gtm.ids[0]}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript> immediately after the opening <body> tag.`
+				: ''
+
 		return check({
 			...base,
 			status: 'warn',
 			summary: warnings.map((w) => w!.implementation).join(' '),
 			recommendation:
-				'Ensure GA4 has a single Measurement ID with gtag("config") and GTM includes both the <head> script and <body> <noscript> iframe.'
+				'Ensure GA4 has a single Measurement ID with gtag("config") and GTM includes both the <head> script and <body> <noscript> iframe.' +
+				gtmNoscriptHint
 		})
 	}
 
