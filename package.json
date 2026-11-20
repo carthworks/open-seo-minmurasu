@@ -40,7 +40,7 @@
 		"check": "tsx scripts/check.ts"
 	},
 	"engines": {
-		"node": ">=22.12"
+		"node": "22.x"
 	},
 	"packageManager": "pnpm@12.10.1",
 	"dependencies": {
