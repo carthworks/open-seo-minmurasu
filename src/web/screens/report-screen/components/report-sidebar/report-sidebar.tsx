@@ -36,6 +36,16 @@ const ReportSidebar = (props: ReportSidebarProps) => {
 					</a>
 				))}
 			</nav>
+			{report.client && (
+				<a className="report-sidebar-item" href="#client">
+					<span className="report-sidebar-icon" aria-hidden="true">
+						<Icon name="mail" size={15} />
+					</span>
+					<span className="report-sidebar-text">
+						<span className="report-sidebar-name">Client details</span>
+					</span>
+				</a>
+			)}
 			{report.sharing && (
 				<>
 					<span className="sidebar-group-title">Sharing</span>

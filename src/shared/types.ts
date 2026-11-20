@@ -109,6 +109,19 @@ export interface AnalyticsScanPreview {
 	analytics: AnalyticsScanResult
 }
 
+export type AuditDeliveryChannel = 'whatsapp_call' | 'email' | 'phone'
+
+export interface ClientLeadDetails {
+	fullName: string
+	phone: string
+	email: string
+	company?: string
+	priority: string
+	growthGoal: string
+	deliveryChannel: AuditDeliveryChannel
+	consent: boolean
+}
+
 export interface CroSignal {
 	id: string
 	name: string
@@ -176,6 +189,8 @@ export interface AuditReport {
 	analytics?: AnalyticsScanResult
 	/** Conversion rate optimization and lead capture signals. */
 	cro?: CroScanResult
+	/** Client details collected before starting the audit. */
+	client?: ClientLeadDetails
 	source: ReportSource
 }
 
@@ -190,6 +205,7 @@ export interface ReportSummary {
 	score: number
 	grade: string
 	source: ReportSource
+	client?: Pick<ClientLeadDetails, 'fullName' | 'phone' | 'email' | 'company'>
 }
 
 export interface AuditProgress {

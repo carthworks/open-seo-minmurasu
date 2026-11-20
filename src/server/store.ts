@@ -147,7 +147,17 @@ export async function saveReport(report: AuditReport): Promise<void> {
 		createdAt: report.createdAt,
 		score: report.score,
 		grade: report.grade,
-		source: report.source
+		source: report.source,
+		...(report.client
+			? {
+					client: {
+						fullName: report.client.fullName,
+						phone: report.client.phone,
+						email: report.client.email,
+						company: report.client.company
+					}
+				}
+			: {})
 	}
 	await updateJson<ReportSummary[]>(reportsIndex, [], (list) => [summary, ...list])
 }
@@ -160,6 +170,14 @@ export async function getReport(id: string): Promise<AuditReport | null> {
 
 export function listReports(): Promise<ReportSummary[]> {
 	return readJson<ReportSummary[]>(reportsIndex, [])
+}
+
+/** Loads full report records that include collected client lead details (newest first). */
+export async function listLeadReports(): Promise<AuditReport[]> {
+	const summaries = await listReports()
+	const reports = await Promise.all(summaries.map((s) => getReport(s.id)))
+
+	return reports.filter((r): r is AuditReport => Boolean(r?.client))
 }
 
 export async function deleteReport(id: string): Promise<boolean> {

@@ -21,7 +21,12 @@ const HistoryScreen = (props: HistoryScreenProps) => {
 	const domains = groupByDomain(
 		needle
 			? reports.filter(
-					(r) => r.domain.includes(needle) || r.title.toLowerCase().includes(needle)
+					(r) =>
+						r.domain.includes(needle) ||
+						r.title.toLowerCase().includes(needle) ||
+						r.client?.fullName.toLowerCase().includes(needle) ||
+						r.client?.company?.toLowerCase().includes(needle) ||
+						r.client?.email.toLowerCase().includes(needle)
 				)
 			: reports
 	)

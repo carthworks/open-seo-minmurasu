@@ -3,12 +3,40 @@ import { clientIp, takeRateLimit, withSlot } from '@server/limits'
 import { pagespeedConfig } from '@server/settings'
 import { getSettings, saveReport } from '@server/store'
 import { jsonError, streamEvents } from '@server/stream'
-import type { AuditProgress, ReportSource } from '@shared/types'
+import type { AuditDeliveryChannel, AuditProgress, ClientLeadDetails, ReportSource } from '@shared/types'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
 const SOURCES: ReportSource[] = ['web', 'api']
+const CHANNELS: AuditDeliveryChannel[] = ['whatsapp_call', 'email', 'phone']
+
+function parseClientLead(raw: unknown): ClientLeadDetails | undefined {
+	if (!raw || typeof raw !== 'object') return undefined
+	const obj = raw as Record<string, unknown>
+	const fullName = typeof obj.fullName === 'string' ? obj.fullName.trim().slice(0, 120) : ''
+	const phone = typeof obj.phone === 'string' ? obj.phone.trim().slice(0, 40) : ''
+	const email = typeof obj.email === 'string' ? obj.email.trim().slice(0, 120) : ''
+	if (!fullName || !phone || !email) return undefined
+
+	const deliveryChannel = CHANNELS.includes(obj.deliveryChannel as AuditDeliveryChannel)
+		? (obj.deliveryChannel as AuditDeliveryChannel)
+		: 'whatsapp_call'
+
+	return {
+		fullName,
+		phone,
+		email,
+		company: typeof obj.company === 'string' ? obj.company.trim().slice(0, 120) || undefined : undefined,
+		priority:
+			typeof obj.priority === 'string' && obj.priority.trim()
+				? obj.priority.trim().slice(0, 120)
+				: 'Complete 360° Digital Presence',
+		growthGoal: typeof obj.growthGoal === 'string' ? obj.growthGoal.trim().slice(0, 600) : '',
+		deliveryChannel,
+		consent: Boolean(obj.consent)
+	}
+}
 
 /**
  * POST /api/audit { url, source?, stream? }
@@ -22,6 +50,7 @@ export async function POST(request: Request): Promise<Response> {
 	const source = SOURCES.includes(body.source as ReportSource)
 		? (body.source as ReportSource)
 		: 'api'
+	const client = parseClientLead(body.client)
 	const settings = await getSettings()
 
 	if (!url.trim()) return jsonError('Enter a website address to audit.', 400)
@@ -35,7 +64,8 @@ export async function POST(request: Request): Promise<Response> {
 				source,
 				onProgress,
 				pagespeed: pagespeedConfig(settings),
-				brokenLinkLimit: settings.brokenLinkLimit
+				brokenLinkLimit: settings.brokenLinkLimit,
+				client
 			})
 			await saveReport(report)
 

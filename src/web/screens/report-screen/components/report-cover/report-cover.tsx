@@ -34,6 +34,9 @@ const ReportCover = (props: ReportCoverProps) => {
 					))}
 				</div>
 				<p className="report-cover-date">
+					{report.client
+						? `Prepared for ${report.client.company ? `${report.client.company} (${report.client.fullName})` : report.client.fullName} · ${report.client.priority} · `
+						: ''}
 					Prepared by {brandName} · {absoluteDate(report.createdAt)}
 				</p>
 			</div>

@@ -136,6 +136,261 @@ a.composer-hint:hover {
 	margin-left: auto;
 }
 
+/* ── Lead Intake Audit Card ───────────────────────────────────────────────── */
+
+.lead-audit-card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: 100%;
+	max-width: 640px;
+	padding: 20px 24px 18px;
+	border: 1px solid var(--line-strong);
+	border-radius: var(--radius-xl);
+	background: var(--surface);
+	box-shadow: var(--shadow-panel);
+	text-align: left;
+	overflow: hidden;
+}
+
+.lead-audit-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 52px;
+	height: 52px;
+	background: linear-gradient(135deg, #f28c28 50%, transparent 50%);
+	pointer-events: none;
+}
+
+.lead-audit-head {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding-left: 10px;
+}
+
+.lead-audit-eyebrow {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: #0b66c3;
+	font-size: 12.5px;
+	font-weight: 600;
+}
+
+.lead-audit-head h2 {
+	margin: 0;
+	font-size: 24px;
+	line-height: 1.2;
+}
+
+.lead-audit-sub {
+	margin: 0;
+	color: var(--ink-2);
+	font-size: 13.5px;
+}
+
+.lead-form-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px;
+}
+
+.lead-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.lead-field > span {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	color: var(--ink-2);
+}
+
+.lead-field em,
+.lead-consent em {
+	font-style: normal;
+	color: #e03131;
+}
+
+.lead-field input,
+.lead-field select,
+.lead-field textarea {
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid var(--line-strong);
+	border-radius: var(--radius-md);
+	background: var(--field);
+	color: var(--ink);
+	font: inherit;
+	font-size: 13.5px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lead-field input:focus,
+.lead-field select:focus,
+.lead-field textarea:focus {
+	outline: none;
+	border-color: #f28c28;
+	box-shadow: 0 0 0 3px rgb(242 140 40 / 0.18);
+}
+
+.lead-field--full {
+	width: 100%;
+}
+
+.lead-radios {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.lead-radios legend {
+	margin-bottom: 8px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	color: var(--ink-2);
+}
+
+.lead-radio-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 18px;
+}
+
+.lead-radio {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 13.5px;
+	color: var(--ink);
+	cursor: pointer;
+}
+
+.lead-consent {
+	display: flex;
+	align-items: flex-start;
+	gap: 9px;
+	font-size: 12.5px;
+	color: var(--ink-2);
+	cursor: pointer;
+}
+
+.lead-consent input {
+	margin-top: 3px;
+}
+
+.lead-consent a {
+	color: #0b66c3;
+	text-decoration: underline;
+}
+
+.lead-submit-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	width: 100%;
+	padding: 13px 18px;
+	border: 0;
+	border-radius: var(--radius-md);
+	background: #f28c28;
+	color: #ffffff;
+	font: inherit;
+	font-size: 15px;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: 0 6px 18px rgb(242 140 40 / 0.28);
+	transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+.lead-submit-btn:hover:not(:disabled) {
+	filter: brightness(1.04);
+	transform: translateY(-1px);
+}
+
+.lead-submit-btn:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+	box-shadow: none;
+}
+
+.lead-footer {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding-top: 12px;
+	border-top: 1px solid var(--line);
+	font-size: 12.5px;
+}
+
+.lead-footer-safe {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--ink-3);
+}
+
+.lead-footer-wa {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: #13935a;
+	font-weight: 600;
+	text-decoration: underline;
+}
+
+.lead-audit-progress {
+	padding: 8px 0;
+}
+
+.lead-more-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	align-self: flex-start;
+	padding: 2px 0;
+	border: 0;
+	background: transparent;
+	color: var(--ink-2);
+	font: inherit;
+	font-size: 12.5px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.lead-more-toggle:hover {
+	color: var(--ink);
+}
+
+.lead-optional-box {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 12px 14px;
+	border: 1px dashed var(--line-strong);
+	border-radius: var(--radius-md);
+	background: var(--surface-2);
+}
+
+@media (max-width: 640px) {
+	.lead-audit-card {
+		padding: 20px 16px;
+	}
+
+	.lead-form-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
 .home-section {
 	display: flex;
 	flex-direction: column;

@@ -3,6 +3,7 @@ import { AiStrategistPanel } from '@web/components/ai-strategist-panel'
 import { ReportFooter } from '@web/components/report-footer'
 import { recommendationsOf } from './report-screen.utils'
 import { AnalyticsSection } from './components/analytics-section'
+import { ClientSection } from './components/client-section'
 import { CroSection } from './components/cro-section'
 import { PriorityList } from './components/priority-list'
 import { ReportChecks } from './components/report-checks'
@@ -39,6 +40,7 @@ const ReportScreen = (props: ReportScreenProps) => {
 				<ReportSidebar report={report} />
 				<div className="report-main">
 					<ReportHero report={report} issues={toFix.length} />
+					{report.client && <ClientSection client={report.client} />}
 					<PriorityList checks={toFix} />
 					<AiStrategistPanel
 						reportId={report.id}

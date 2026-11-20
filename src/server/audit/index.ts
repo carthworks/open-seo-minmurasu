@@ -1,6 +1,12 @@
 import { randomBytes } from 'node:crypto'
 import { gradeFor } from '@shared/grades'
-import type { AuditProgress, AuditReport, PageSpeedResult, ReportSource } from '@shared/types'
+import type {
+	AuditProgress,
+	AuditReport,
+	ClientLeadDetails,
+	PageSpeedResult,
+	ReportSource
+} from '@shared/types'
 import { accessibilityChecks } from './checks/accessibility'
 import { aiChecks } from './checks/ai'
 import { analyticsChecks } from './checks/analytics'
@@ -31,6 +37,7 @@ export interface AuditOptions {
 	pagespeed?: { enabled: boolean; apiKey?: string }
 	brokenLinkLimit?: number
 	source?: ReportSource
+	client?: ClientLeadDetails
 }
 
 export function newId(): string {
@@ -39,7 +46,7 @@ export function newId(): string {
 
 /** Audits one page and returns the graded report. Throws AuditError with a readable message. */
 export async function runAudit(input: string, options: AuditOptions = {}): Promise<AuditReport> {
-	const { onProgress, pagespeed, brokenLinkLimit = 40, source = 'web' } = options
+	const { onProgress, pagespeed, brokenLinkLimit = 40, source = 'web', client } = options
 	const started = Date.now()
 	let pct = 0
 	const progress = (step: string, label: string, to: number) => {
@@ -133,6 +140,7 @@ export async function runAudit(input: string, options: AuditOptions = {}): Promi
 			mobile: ctx.pagespeed.mobile && { ...ctx.pagespeed.mobile, screenshot: undefined },
 			desktop: ctx.pagespeed.desktop && { ...ctx.pagespeed.desktop, screenshot: undefined }
 		},
+		...(client ? { client } : {}),
 		source
 	}
 

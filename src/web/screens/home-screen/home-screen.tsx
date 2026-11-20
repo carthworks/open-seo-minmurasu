@@ -21,7 +21,7 @@ const HomeScreen = (props: HomeScreenProps) => {
 					Paste a URL. {brandName} grades on-page SEO, speed, links, usability,
 					security, AI search, local SEO, accessibility, trust &amp; E-E-A-T, analytics &amp; tracking, and CRO &amp; lead capture — built for conversion rate optimization, lead generation services, and instant VibeCode fixes.
 				</p>
-				<AuditForm pagespeedEnabled={pagespeedEnabled} />
+				<AuditForm pagespeedEnabled={pagespeedEnabled} brandName={brandName} />
 			</section>
 
 			<section className="home-section" aria-labelledby="features-title">
