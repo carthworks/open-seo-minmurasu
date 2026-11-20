@@ -74,6 +74,25 @@ const ReportSidebar = (props: ReportSidebarProps) => {
 					</a>
 				</>
 			)}
+			{report.cro && (
+				<>
+					<span className="sidebar-group-title">Conversion</span>
+					<a className="report-sidebar-item" href="#cro">
+						<span className="report-sidebar-icon" aria-hidden="true">
+							<Icon name="cro" size={15} />
+						</span>
+						<span className="report-sidebar-text">
+							<span className="report-sidebar-name">CRO &amp; Lead Capture</span>
+						</span>
+						<span
+							className="report-sidebar-grade mono"
+							title="Detected CTAs"
+						>
+							{report.cro.ctaCount}
+						</span>
+					</a>
+				</>
+			)}
 		</aside>
 	)
 }

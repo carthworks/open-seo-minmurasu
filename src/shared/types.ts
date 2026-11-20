@@ -16,6 +16,7 @@ export type CategoryId =
 	| 'accessibility'
 	| 'trust'
 	| 'analytics'
+	| 'cro'
 
 /** Structured evidence for a check, rendered by the report's detail blocks. */
 export type Detail =
@@ -108,6 +109,34 @@ export interface AnalyticsScanPreview {
 	analytics: AnalyticsScanResult
 }
 
+export interface CroSignal {
+	id: string
+	name: string
+	category: string
+	status: Status
+	statusLabel: string
+	implementation: string
+}
+
+export interface CroScanResult {
+	signals: CroSignal[]
+	ctaCount: number
+	ctaSamples: string[]
+	leadFormCount: number
+	maxFormFields: number
+	hasPhoneLink: boolean
+	hasWhatsApp: boolean
+	liveChatTools: string[]
+	hasSocialProof: boolean
+}
+
+export interface CroScanPreview {
+	url: string
+	finalUrl: string
+	title: string
+	cro: CroScanResult
+}
+
 export interface AuditOverview {
 	title: string
 	description: string
@@ -145,6 +174,8 @@ export interface AuditReport {
 	sharing?: SharingReport
 	/** Detected analytics and tracking tools. Missing on reports made before this scanner existed. */
 	analytics?: AnalyticsScanResult
+	/** Conversion rate optimization and lead capture signals. */
+	cro?: CroScanResult
 	source: ReportSource
 }
 

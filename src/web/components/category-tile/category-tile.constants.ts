@@ -12,5 +12,6 @@ export const CATEGORY_ICONS: Record<CategoryId, IconName> = {
 	local: 'pin',
 	accessibility: 'accessibility',
 	trust: 'trust',
-	analytics: 'analytics'
+	analytics: 'analytics',
+	cro: 'cro'
 }

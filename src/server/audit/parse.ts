@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio'
 import { scanAnalytics } from './analytics'
+import { scanCro } from './cro'
 import type { CheerioRoot, ImageInfo, LinkInfo, ParsedPage } from './context'
 import { decodeHtml, stripWww, type SafeFetchResult } from './http'
 import { readSocialMeta } from './social-meta'
@@ -148,6 +149,7 @@ export function parsePage(page: SafeFetchResult): ParsedPage {
 		...structured,
 		social: readSocialMeta($, base, structured.jsonLd.items),
 		tech: detectTechnologies(html, page.headers, generator),
-		analytics: scanAnalytics(html, $)
+		analytics: scanAnalytics(html, $),
+		cro: scanCro(html, $, [...structured.jsonLd.types, ...structured.microdataTypes])
 	}
 }

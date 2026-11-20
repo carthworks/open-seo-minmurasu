@@ -1,5 +1,11 @@
 import type * as cheerio from 'cheerio'
-import type { AnalyticsScanResult, PageSpeedResult, SharingReport, Technology } from '@shared/types'
+import type {
+	AnalyticsScanResult,
+	CroScanResult,
+	PageSpeedResult,
+	SharingReport,
+	Technology
+} from '@shared/types'
 import type { SafeFetchResult } from './http'
 import type { DnsInfo, TlsInfo } from './network'
 import type { RobotsTxt } from './robots'
@@ -74,6 +80,7 @@ export interface ParsedPage {
 	social: SocialMeta
 	tech: Technology[]
 	analytics: AnalyticsScanResult
+	cro: CroScanResult
 }
 
 /** What we learned from the extra requests made around the page. */

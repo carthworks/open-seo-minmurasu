@@ -19,7 +19,7 @@ export const CATEGORIES: CategoryInfo[] = [
 		id: 'performance',
 		name: 'Performance',
 		description: 'How quickly the page arrives and how heavy it is.',
-		weight: 14
+		weight: 13
 	},
 	{
 		id: 'usability',
@@ -49,30 +49,36 @@ export const CATEGORIES: CategoryInfo[] = [
 		id: 'ai',
 		name: 'AI search',
 		description: 'Whether AI assistants and answer engines can read and cite the page.',
-		weight: 7
+		weight: 6
 	},
 	{
 		id: 'local',
 		name: 'Local SEO',
 		description: 'Whether local customers and map searches find your business: schemas, NAP and maps.',
-		weight: 6
+		weight: 5
 	},
 	{
 		id: 'accessibility',
 		name: 'Accessibility',
 		description: 'How easily people of all abilities and assistive tech can navigate the page.',
-		weight: 6
+		weight: 5
 	},
 	{
 		id: 'trust',
 		name: 'Trust & E-E-A-T',
 		description: 'Author credentials, business legitimacy, policies, terms, and copyright transparency.',
-		weight: 6
+		weight: 5
 	},
 	{
 		id: 'analytics',
 		name: 'Analytics & Tracking',
 		description: 'Installed analytics, tag managers, ad pixels, implementation details and consent signals.',
+		weight: 5
+	},
+	{
+		id: 'cro',
+		name: 'CRO & Lead Capture',
+		description: 'Calls-to-action, lead forms, form friction, chat widgets, click-to-call and social proof.',
 		weight: 5
 	}
 ]

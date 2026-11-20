@@ -13,13 +13,13 @@ const HomeScreen = (props: HomeScreenProps) => {
 	return (
 		<div className="home">
 			<section className="home-hero">
-				<span className="eyebrow">{brandName} · Powered by OpenSEO · 11 Areas · 85 Checks</span>
+				<span className="eyebrow">{brandName} · Powered by OpenSEO · 12 Areas · 90 Checks</span>
 				<h1>
 					Find what&apos;s <span className="highlight">holding your site</span> back
 				</h1>
 				<p className="home-lede">
 					Paste a URL. {brandName} grades on-page SEO, speed, links, usability,
-					security, AI search, local SEO, accessibility, trust &amp; E-E-A-T, and analytics &amp; tracking — built for conversion rate optimization, lead generation services, and instant VibeCode fixes.
+					security, AI search, local SEO, accessibility, trust &amp; E-E-A-T, analytics &amp; tracking, and CRO &amp; lead capture — built for conversion rate optimization, lead generation services, and instant VibeCode fixes.
 				</p>
 				<AuditForm pagespeedEnabled={pagespeedEnabled} />
 			</section>
@@ -71,7 +71,7 @@ const HomeScreen = (props: HomeScreenProps) => {
 
 			<section className="home-section" aria-labelledby="checks-title">
 				<div className="home-section-head">
-					<h2 id="checks-title">Eleven areas, one grade</h2>
+					<h2 id="checks-title">Twelve areas, one grade</h2>
 					<p className="muted">
 						Each area gets its own score, weighted by how much it matters for search.
 					</p>

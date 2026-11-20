@@ -198,5 +198,10 @@ export const PATHS = {
 			<path d="M3.5 16.5h13" />
 			<path d="M5.5 16.5v-4.5M10 16.5v-8.5M14.5 16.5V5.5" strokeWidth={2.2} />
 		</>
+	),
+	cro: (
+		<>
+			<path d="M3.5 4.5h13l-5 5.75v4.5l-3 1.75v-6.25Z" />
+		</>
 	)
 }
