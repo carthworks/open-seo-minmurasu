@@ -4,7 +4,7 @@ import { getSettings, saveCrawl } from '@server/store'
 import { jsonError, streamEvents } from '@server/stream'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 800
+export const maxDuration = 300
 
 /** POST /api/crawl { url, maxPages? }: streams progress, then { type: "done", id }. */
 export async function POST(request: Request): Promise<Response> {

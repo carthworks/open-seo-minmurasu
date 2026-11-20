@@ -9,7 +9,7 @@ import { getSettings } from '@server/store'
 import { jsonError, streamEvents } from '@server/stream'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 800
+export const maxDuration = 300
 
 /** GET /api/keyword-audit: list past keyword audits */
 export async function GET(): Promise<Response> {

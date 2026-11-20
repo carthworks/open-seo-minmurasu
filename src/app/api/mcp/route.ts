@@ -2,7 +2,7 @@ import { handleMcpPost } from '@server/mcp/http'
 import { SERVER, TOOLS } from '@server/mcp/tools'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 800
+export const maxDuration = 300
 
 /**
  * POST /api/mcp: the MCP server, for Claude, Cursor and other AI tools (Streamable HTTP, no
