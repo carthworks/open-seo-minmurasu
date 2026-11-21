@@ -7,12 +7,8 @@ import { Icon } from '@web/components/icon'
 import { Input } from '@web/components/input'
 import { PageHeader } from '@web/components/page-header'
 import { relativeTime } from '@web/lib/time'
-import type { AuditDeliveryChannel, AuditReport } from '@shared/types'
-
-export interface LeadsScreenProps {
-	leads: AuditReport[]
-	now: number
-}
+import type { AuditDeliveryChannel } from '@shared/types'
+import type { LeadsScreenProps } from './leads-screen.types'
 
 const CHANNEL_LABEL: Record<AuditDeliveryChannel, string> = {
 	whatsapp_call: 'WhatsApp + Call',

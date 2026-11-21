@@ -1,10 +1,7 @@
 import { memo } from 'react'
 import { StatusMark } from '@web/components/status-mark'
-import type { AnalyticsScanResult, Status, TrackingToolStatus } from '@shared/types'
-
-export interface AnalyticsReportProps {
-	analytics: AnalyticsScanResult
-}
+import type { Status, TrackingToolStatus } from '@shared/types'
+import type { AnalyticsReportProps } from './analytics-report.types'
 
 function statusToTone(status: TrackingToolStatus): Status {
 	if (status === 'active') return 'pass'

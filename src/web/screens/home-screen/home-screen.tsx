@@ -58,6 +58,14 @@ const HomeScreen = (props: HomeScreenProps) => {
 						</div>
 						<span className="home-feature-arrow" aria-hidden="true">→</span>
 					</Link>
+					<Link href="/llm-visibility" className="home-feature-card">
+						<span className="home-feature-icon" aria-hidden="true">🤖</span>
+						<div>
+							<h3>LLM Visibility Scanner</h3>
+							<p>See how ChatGPT, Gemini, and Claude answer for your brand, cite your domain, and position your business.</p>
+						</div>
+						<span className="home-feature-arrow" aria-hidden="true">→</span>
+					</Link>
 					<Link href="/tools" className="home-feature-card">
 						<span className="home-feature-icon" aria-hidden="true">🛠️</span>
 						<div>

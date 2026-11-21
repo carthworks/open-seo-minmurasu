@@ -1,10 +1,6 @@
 import { memo } from 'react'
 import { StatusMark } from '@web/components/status-mark'
-import type { CroScanResult } from '@shared/types'
-
-export interface CroReportProps {
-	cro: CroScanResult
-}
+import type { CroReportProps } from './cro-report.types'
 
 /** Renders CRO & Lead Capture signals, status badges, and implementation summaries. */
 const CroReport = (props: CroReportProps) => {

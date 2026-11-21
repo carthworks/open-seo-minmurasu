@@ -1,10 +1,6 @@
 import { memo } from 'react'
 import { AnalyticsReport } from '@web/components/analytics-report'
-import type { AnalyticsScanResult } from '@shared/types'
-
-export interface AnalyticsSectionProps {
-	analytics: AnalyticsScanResult
-}
+import type { AnalyticsSectionProps } from './analytics-section.types'
 
 /** Installed analytics & tracking tools detected on the audited page (included in web & PDF reports). */
 const AnalyticsSection = (props: AnalyticsSectionProps) => {

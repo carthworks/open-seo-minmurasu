@@ -1,9 +1,6 @@
 import { memo } from 'react'
-import type { AuditDeliveryChannel, ClientLeadDetails } from '@shared/types'
-
-export interface ClientSectionProps {
-	client: ClientLeadDetails
-}
+import type { AuditDeliveryChannel } from '@shared/types'
+import type { ClientSectionProps } from './client-section.types'
 
 const CHANNEL_LABEL: Record<AuditDeliveryChannel, string> = {
 	whatsapp_call: 'WhatsApp + Call',

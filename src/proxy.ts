@@ -6,10 +6,15 @@ import { NextResponse, type NextRequest } from 'next/server'
  */
 function isPublic(request: NextRequest): boolean {
 	const { pathname } = request.nextUrl
-	if (['/', '/preview', '/analytics', '/cro'].includes(pathname) || pathname.startsWith('/report/')) {
+	if (
+		['/', '/preview', '/analytics', '/cro', '/llm-visibility'].includes(pathname) ||
+		pathname.startsWith('/report/')
+	) {
 		return true
 	}
-	if (pathname === '/api/audit' || pathname === '/api/preview') return true
+	if (pathname === '/api/audit' || pathname === '/api/preview' || pathname === '/api/llm-visibility') {
+		return true
+	}
 
 	return (
 		request.method === 'GET' &&

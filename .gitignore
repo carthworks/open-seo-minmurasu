@@ -22,3 +22,8 @@ data/*
 open-seo.md
 plan.md
 *.tmp
+*.patch
+
+# Local tooling and deployment metadata
+.vercel/
+.agents/

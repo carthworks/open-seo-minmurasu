@@ -7,13 +7,7 @@ import { Button } from '@web/components/button'
 import { EmptyState } from '@web/components/empty-state'
 import { Icon } from '@web/components/icon'
 import { PageHeader } from '@web/components/page-header'
-import type { AnalyticsScanPreview } from '@shared/types'
-
-export interface AnalyticsScreenProps {
-	initialUrl: string
-	result?: AnalyticsScanPreview
-	error?: string
-}
+import type { AnalyticsScreenProps } from './analytics-screen.types'
 
 /** Standalone scanner for detecting installed analytics, tag managers, and tracking pixels. */
 const AnalyticsScreen = (props: AnalyticsScreenProps) => {

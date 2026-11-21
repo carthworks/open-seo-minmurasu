@@ -1,10 +1,6 @@
 import { memo } from 'react'
 import { CroReport } from '@web/components/cro-report'
-import type { CroScanResult } from '@shared/types'
-
-export interface CroSectionProps {
-	cro: CroScanResult
-}
+import type { CroSectionProps } from './cro-section.types'
 
 /** CRO & Lead Capture summary card (included in web & PDF reports). */
 const CroSection = (props: CroSectionProps) => {

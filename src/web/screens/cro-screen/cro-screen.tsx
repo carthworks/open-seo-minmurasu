@@ -7,13 +7,7 @@ import { CroReport } from '@web/components/cro-report'
 import { EmptyState } from '@web/components/empty-state'
 import { Icon } from '@web/components/icon'
 import { PageHeader } from '@web/components/page-header'
-import type { CroScanPreview } from '@shared/types'
-
-export interface CroScreenProps {
-	initialUrl: string
-	result?: CroScanPreview
-	error?: string
-}
+import type { CroScreenProps } from './cro-screen.types'
 
 /** Standalone scanner for Conversion Rate Optimization (CRO) and lead capture readiness. */
 const CroScreen = (props: CroScreenProps) => {

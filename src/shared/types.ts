@@ -150,6 +150,33 @@ export interface CroScanPreview {
 	cro: CroScanResult
 }
 
+export type LlmProviderId = 'chatgpt' | 'gemini' | 'claude'
+
+export type LlmVisibilityStatus = 'mentioned' | 'not_mentioned' | 'not_configured' | 'error'
+
+export interface LlmProviderResult {
+	provider: LlmProviderId
+	label: string
+	model: string
+	status: LlmVisibilityStatus
+	statusLabel: string
+	mentionedBrand: boolean
+	mentionedDomain: boolean
+	sentiment: 'positive' | 'neutral' | 'negative' | 'unknown'
+	excerpt: string
+	error?: string
+}
+
+export interface LlmVisibilityResult {
+	brand: string
+	domain: string
+	prompt: string
+	checkedAt: string
+	configuredCount: number
+	mentionedCount: number
+	results: LlmProviderResult[]
+}
+
 export interface AuditOverview {
 	title: string
 	description: string
