@@ -2,6 +2,54 @@
 
 All notable changes to OpenSEO. Versions follow [Semantic Versioning](https://semver.org).
 
+## [0.4.0](https://github.com/carthworks/open-seo-minmurasu/compare/v0.3.0...v0.4.0) (2026-11-21)
+
+
+### Features
+
+* add about page and company screen for MIN MURASU branding ([d78a33a](https://github.com/carthworks/open-seo-minmurasu/commit/d78a33aa466122441243060e52b7b42e52cfdc13))
+* add about screen, home screen preview, and update documentation for 10-area SEO audit ([7591cd2](https://github.com/carthworks/open-seo-minmurasu/commit/7591cd23188898f4fcf2b70daa197103f36e1d32))
+* add analytics and CRO audit modules with new scanners and UI components ([0880080](https://github.com/carthworks/open-seo-minmurasu/commit/0880080f1f0b3180cf6f407ef580556a816eb346))
+* add API routes for crawling, keyword audits, and MCP server ([1773e57](https://github.com/carthworks/open-seo-minmurasu/commit/1773e5741af991f8ff04daac8dd92ce2271b1f77))
+* add app pages, trust audit checks, and UI screen components ([2673987](https://github.com/carthworks/open-seo-minmurasu/commit/2673987618c5fd0f7d187e02d7b0e9379d1e65a5))
+* add app shell, toast notification system, leads screen, and llm visibility screen components ([5fbd1cf](https://github.com/carthworks/open-seo-minmurasu/commit/5fbd1cf9e2ad8ec425fb811f1fa3eb6bbd495aa3))
+* add category grade pills on PDF report cover and print stylesheet ([34c0cf5](https://github.com/carthworks/open-seo-minmurasu/commit/34c0cf5036f1a46f81e2fa323dc72c09ace49554))
+* add core app shell, proxy middleware, and settings configuration ([ac43707](https://github.com/carthworks/open-seo-minmurasu/commit/ac43707bb7b16eb561580a35ba559d903f0b536b))
+* add default application settings for MIN MURASU brand in open-seo tool ([bf9e7b6](https://github.com/carthworks/open-seo-minmurasu/commit/bf9e7b6ee2d8a1c6aada09b62d4d95060c9e5392))
+* add default settings configuration for open-seo ([65f4deb](https://github.com/carthworks/open-seo-minmurasu/commit/65f4deb9b4ff79b15a8af2cf2674f574982fddb4))
+* add default settings configuration for open-seo tool ([d31007b](https://github.com/carthworks/open-seo-minmurasu/commit/d31007b8544ee3b9e25a14442775131c02996ddd))
+* add design tokens and base styles for OpenSEO web interface ([7e9314e](https://github.com/carthworks/open-seo-minmurasu/commit/7e9314e1694b280000868a72dffa61a792c286bf))
+* add initial app layout, home screen audit form, and report cover components ([2b23f44](https://github.com/carthworks/open-seo-minmurasu/commit/2b23f44fe43723a51f3237145789e9bb371f422b))
+* add keyword audit tool and application settings management ([498c9ca](https://github.com/carthworks/open-seo-minmurasu/commit/498c9ca0f6390e340b96882b6a8efe67866098c4))
+* add link intelligence module with API routes and UI components ([9a0756e](https://github.com/carthworks/open-seo-minmurasu/commit/9a0756e9947e2d5603e8c038eac38ddaf3b83b23))
+* add LLM visibility feature and application reports ([152873e](https://github.com/carthworks/open-seo-minmurasu/commit/152873e331711255c333827d9ca087d7db5b2f51))
+* add local AI strategist integration and keyword audit reporting ([1b0703d](https://github.com/carthworks/open-seo-minmurasu/commit/1b0703d95eac8d8ec072224a084d90d144d3388c))
+* add open-seo application structure and core features ([2bf331e](https://github.com/carthworks/open-seo-minmurasu/commit/2bf331e6156118bcb2242abce0b566befe62de7c))
+* add proxy middleware for request authentication and CSP headers ([a71a9e6](https://github.com/carthworks/open-seo-minmurasu/commit/a71a9e6711deaeabbf1b89193a1eed2aedd0b327))
+* add settings screen components and dynamic root layout metadata ([14f2b81](https://github.com/carthworks/open-seo-minmurasu/commit/14f2b819b5efedd070c245deba9e31ff3e8c484f))
+* add trust and E-E-A-T audit checks for SEO analysis ([bc5e28c](https://github.com/carthworks/open-seo-minmurasu/commit/bc5e28c61b5ca7830f83e0b24b6312b8f1cca78a))
+* add web audit form, audio feedback utility, and screen components ([865b423](https://github.com/carthworks/open-seo-minmurasu/commit/865b423d8e0d69fdb5b46005a30ab38d2f25e68b))
+* add website SEO and keyword audit tool with help documentation ([9d45b5e](https://github.com/carthworks/open-seo-minmurasu/commit/9d45b5e0d7deb6242473d29eef93839b67f03e04))
+* add WHOIS and domain intelligence lookup features ([4064df7](https://github.com/carthworks/open-seo-minmurasu/commit/4064df7859edc2f61dc23b3215d27f8da6d799fb))
+* **audit:** deeper security checks with graded findings ([d341b2b](https://github.com/carthworks/open-seo-minmurasu/commit/d341b2be439c9b0079bd9920e9347809ca609683))
+* **audit:** deeper security checks with graded findings ([f0bc5f8](https://github.com/carthworks/open-seo-minmurasu/commit/f0bc5f863da35a42fb9d3953b8686aa4a1fa9b1a))
+* implement admin authentication and session management with proxy middleware ([dc77958](https://github.com/carthworks/open-seo-minmurasu/commit/dc779582e5548ac86020f6a3f0d91da309d0d1e8))
+* implement core SEO audit pipeline, API routes, and lead management screens ([794bf91](https://github.com/carthworks/open-seo-minmurasu/commit/794bf91c8174b7662145a590e7b9f885fa6726a0))
+* **report:** add ready-made VibeCode prompt modal in top bar ([57844c7](https://github.com/carthworks/open-seo-minmurasu/commit/57844c7d6e47ef5a69cb356dac86b0e23a8c6838))
+* support real competitor crawling and gap analysis in keyword audit ([00ed4fa](https://github.com/carthworks/open-seo-minmurasu/commit/00ed4fa24dffe52dd8e9ed0c88de416c9b18db35))
+
+
+### Bug Fixes
+
+* update keyword audit to compare against real competitor URLs ([92b8428](https://github.com/carthworks/open-seo-minmurasu/commit/92b8428af9c9438c604aed51e268a67665655cb5))
+
+
+### Documentation
+
+* update banner image reference to PNG format and add asset ([6e77d37](https://github.com/carthworks/open-seo-minmurasu/commit/6e77d37fdbcaab9224752e2aba417d5b91ab5bc7))
+* update README and home screen with VibeCode prompt, quick tools, and 10 audit areas ([d7addd4](https://github.com/carthworks/open-seo-minmurasu/commit/d7addd4f8c73804148c8068f26011434e4b8afcf))
+* update README with MIN MURASU branding and features ([f0dfd0d](https://github.com/carthworks/open-seo-minmurasu/commit/f0dfd0d02d89c8ea671601f4375fb697835018c2))
+
 ## [0.3.0](https://github.com/alexsilver8/open-seo/compare/v0.2.0...v0.3.0) (2026-10-11)
 
 ### Compare two audits

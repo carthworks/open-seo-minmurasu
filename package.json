@@ -1,7 +1,7 @@
 {
 	"name": "open-seo-minmurasu",
 	"productName": "OpenSEO-Minmurasu",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "An open-source SEO audit tool by MIN MURASU: graded website reports across 9 areas, site crawler, PDF reports, social previews, and local SEO analysis.",
 	"author": "MIN MURASU <minmurasu.digital@gmail.com>",
 	"homepage": "https://www.minmurasu.digital/",
