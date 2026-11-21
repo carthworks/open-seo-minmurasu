@@ -4,12 +4,27 @@ import { NextResponse, type NextRequest } from 'next/server'
  * Pages and endpoints anyone may use: the audit and preview tools, and shared reports and
  * comparisons (`/report/<id>` and `/report/<id>/compare/<id>`).
  */
+const PUBLIC_PAGES = new Set([
+	'/',
+	'/preview',
+	'/analytics',
+	'/cro',
+	'/llm-visibility',
+	'/tools',
+	'/checklist',
+	'/services',
+	'/contact',
+	'/about',
+	'/help',
+	'/sitemap',
+	'/compare',
+	'/sitemap.xml',
+	'/robots.txt'
+])
+
 function isPublic(request: NextRequest): boolean {
 	const { pathname } = request.nextUrl
-	if (
-		['/', '/preview', '/analytics', '/cro', '/llm-visibility'].includes(pathname) ||
-		pathname.startsWith('/report/')
-	) {
+	if (PUBLIC_PAGES.has(pathname) || pathname.startsWith('/report/')) {
 		return true
 	}
 	if (pathname === '/api/audit' || pathname === '/api/preview' || pathname === '/api/llm-visibility') {
