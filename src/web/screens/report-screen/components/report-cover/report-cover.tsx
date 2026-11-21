@@ -14,7 +14,9 @@ const ReportCover = (props: ReportCoverProps) => {
 				<span className="report-cover-name">{brandName}</span>
 			</div>
 			<div className="report-cover-body">
-				<span className="report-cover-eyebrow">SEO audit report</span>
+				<span className="report-cover-eyebrow">
+					Murasu Score · Free SEO &amp; AI Search Audit
+				</span>
 				<h1 className="report-cover-title">{report.domain}</h1>
 				<p className="report-cover-url">{displayUrl(report.finalUrl)}</p>
 				<div className="report-cover-score">

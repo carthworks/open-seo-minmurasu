@@ -28,8 +28,8 @@ export async function generateMetadata(): Promise<Metadata> {
 	return {
 		metadataBase: settings.appUrl ? new URL(settings.appUrl) : undefined,
 		title: {
-			default: `${settings.brandName} · SEO audit`,
-			template: `%s · ${settings.brandName}`
+			default: `Murasu Score · Free SEO & AI Search Audit by ${settings.brandName}`,
+			template: `%s · Murasu Score`
 		},
 		description:
 			'Audit any page for on-page SEO, speed, links, mobile, security, AI search readiness, lead generation services, and conversion rate optimization.',

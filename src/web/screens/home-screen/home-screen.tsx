@@ -13,13 +13,16 @@ const HomeScreen = (props: HomeScreenProps) => {
 	return (
 		<div className="home">
 			<section className="home-hero">
-				<span className="eyebrow">{brandName} · Powered by OpenSEO · 12 Areas · 90 Checks</span>
+				<span className="eyebrow">
+					Murasu Score · Free SEO &amp; AI Search Audit by {brandName} · 12 Areas · 90 Checks
+				</span>
 				<h1>
-					Find what&apos;s <span className="highlight">holding your site</span> back
+					Check your <span className="highlight">Murasu Score</span>
 				</h1>
 				<p className="home-lede">
-					Paste a URL. {brandName} grades on-page SEO, speed, links, usability,
-					security, AI search, local SEO, accessibility, trust &amp; E-E-A-T, analytics &amp; tracking, and CRO &amp; lead capture — built for conversion rate optimization, lead generation services, and instant VibeCode fixes.
+					Free SEO &amp; AI Search Audit by {brandName} (Drumbeat SEO). Grade on-page SEO,
+					speed, links, usability, security, AI search, local SEO, accessibility, trust
+					&amp; E-E-A-T, analytics &amp; tracking, and CRO &amp; lead capture.
 				</p>
 				<AuditForm pagespeedEnabled={pagespeedEnabled} brandName={brandName} />
 			</section>

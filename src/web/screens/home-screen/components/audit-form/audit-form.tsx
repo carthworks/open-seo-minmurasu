@@ -84,9 +84,9 @@ const AuditForm = (props: AuditFormProps) => {
 			<div className="lead-audit-head">
 				<span className="lead-audit-eyebrow">
 					<Icon name="clock" size={14} />
-					Takes 15 Seconds • Live Audit + Custom Report
+					Takes 15 Seconds • Free SEO &amp; AI Search Audit
 				</span>
-				<h2>Request Your Free Digital Audit</h2>
+				<h2>Get Your Free Murasu Score</h2>
 			</div>
 
 			{progress ? (
@@ -246,7 +246,7 @@ const AuditForm = (props: AuditFormProps) => {
 
 					<button type="submit" className="lead-submit-btn" disabled={!canSubmit}>
 						<Icon name="audit" size={16} />
-						<span>Get My Free Digital Presence Audit</span>
+						<span>Get My Free Murasu Score</span>
 					</button>
 
 					<div className="lead-footer">
