@@ -21,6 +21,11 @@ const AppShell = (props: AppShellProps) => {
 		setCollapsed((prev) => ({ ...prev, [title]: !prev[title] }))
 	}
 
+	const handleLogout = async () => {
+		await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
+		window.location.assign('/')
+	}
+
 	return (
 		<div className="app-shell">
 			<aside className="sidebar">
@@ -84,6 +89,23 @@ const AppShell = (props: AppShellProps) => {
 						<Icon name="code" size={15} />
 						<span>Powered by OpenSEO · MIT</span>
 					</a>
+					<button
+						type="button"
+						className="sidebar-footer"
+						onClick={handleLogout}
+						title="Lock admin session"
+						style={{
+							width: '100%',
+							border: 0,
+							background: 'transparent',
+							cursor: 'pointer',
+							opacity: 0.55,
+							fontSize: 12
+						}}
+					>
+						<Icon name="security" size={13} />
+						<span>Lock admin</span>
+					</button>
 				</div>
 			</aside>
 			<main className="app-panel">{children}</main>

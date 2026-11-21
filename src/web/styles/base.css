@@ -474,6 +474,118 @@ textarea.text-input {
 	margin-top: 1px;
 }
 
+/* ── Vibe UI Delight: Tactile press, skeleton shimmers, toasts & mobile tables ─ */
+
+.button:active:not(:disabled),
+.lead-submit-btn:active:not(:disabled) {
+	transform: scale(0.98);
+}
+
+.detail-table-wrap {
+	width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+@keyframes shimmer {
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+.skeleton-card {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 20px;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-lg);
+	background: var(--surface);
+}
+
+.skeleton-line {
+	position: relative;
+	overflow: hidden;
+	height: 14px;
+	border-radius: 6px;
+	background: var(--surface-sunk);
+}
+
+.skeleton-line::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	transform: translateX(-100%);
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		rgb(255 255 255 / 0.35) 50%,
+		transparent 100%
+	);
+	animation: shimmer 1.4s infinite;
+}
+
+.toast-stack {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	z-index: 80;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	max-width: calc(100vw - 32px);
+}
+
+.toast-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	border: 1px solid var(--line-strong);
+	border-radius: var(--radius-md);
+	background: var(--surface);
+	box-shadow: var(--shadow-pop);
+	font-size: 13px;
+	font-weight: 500;
+	animation: toastIn 0.2s var(--ease-out);
+}
+
+.toast-item--pass {
+	border-color: color-mix(in oklab, var(--pass) 40%, var(--line));
+}
+
+.toast-item--fail {
+	border-color: color-mix(in oklab, var(--fail) 40%, var(--line));
+}
+
+.toast-item-close {
+	display: inline-grid;
+	place-items: center;
+	margin-left: auto;
+	padding: 4px;
+	border: 0;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--ink-3);
+	cursor: pointer;
+}
+
+.toast-item-close:hover {
+	background: var(--hover);
+	color: var(--ink);
+}
+
+@keyframes toastIn {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,

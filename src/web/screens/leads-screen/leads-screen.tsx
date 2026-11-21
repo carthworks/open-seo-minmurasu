@@ -6,6 +6,7 @@ import { EmptyState } from '@web/components/empty-state'
 import { Icon } from '@web/components/icon'
 import { Input } from '@web/components/input'
 import { PageHeader } from '@web/components/page-header'
+import { ToastContainer, useToast } from '@web/components/toast'
 import { relativeTime } from '@web/lib/time'
 import type { AuditDeliveryChannel } from '@shared/types'
 import type { LeadsScreenProps } from './leads-screen.types'
@@ -30,6 +31,7 @@ function csvCell(value: string | number | undefined): string {
 const LeadsScreen = (props: LeadsScreenProps) => {
 	const { leads, now } = props
 	const [query, setQuery] = useState('')
+	const { toasts, push, dismiss } = useToast()
 	const needle = query.trim().toLowerCase()
 
 	const filtered = needle
@@ -92,6 +94,7 @@ const LeadsScreen = (props: LeadsScreenProps) => {
 		a.download = `openseo-leads-${new Date().toISOString().slice(0, 10)}.csv`
 		a.click()
 		URL.revokeObjectURL(url)
+		push(`Exported ${filtered.length} lead${filtered.length === 1 ? '' : 's'} to CSV.`)
 	}
 
 	return (
@@ -133,6 +136,19 @@ const LeadsScreen = (props: LeadsScreenProps) => {
 					<p>
 						When prospects submit the Free Digital Audit form on the homepage, their
 						contact details, growth goals, and audit scores will appear here.
+					</p>
+				</EmptyState>
+			) : filtered.length === 0 ? (
+				<EmptyState icon="search" title="No matching leads">
+					<p>No leads matched &ldquo;{query}&rdquo;.</p>
+					<p>
+						<button
+							type="button"
+							className="button button--small"
+							onClick={() => setQuery('')}
+						>
+							Clear search
+						</button>
 					</p>
 				</EmptyState>
 			) : (
@@ -255,6 +271,7 @@ const LeadsScreen = (props: LeadsScreenProps) => {
 					</div>
 				</div>
 			)}
+			<ToastContainer toasts={toasts} onDismiss={dismiss} />
 		</div>
 	)
 }

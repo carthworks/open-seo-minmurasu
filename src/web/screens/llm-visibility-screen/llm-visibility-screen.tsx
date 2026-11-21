@@ -6,6 +6,7 @@ import { EmptyState } from '@web/components/empty-state'
 import { Icon } from '@web/components/icon'
 import { PageHeader } from '@web/components/page-header'
 import { StatusMark } from '@web/components/status-mark'
+import { ToastContainer, useToast } from '@web/components/toast'
 import type { LlmProviderResult, LlmVisibilityResult, Status } from '@shared/types'
 
 function statusToTone(status: LlmProviderResult['status']): Status {
@@ -24,6 +25,7 @@ const LlmVisibilityScreen = () => {
 	const [pending, setPending] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [result, setResult] = useState<LlmVisibilityResult | null>(null)
+	const { toasts, push, dismiss } = useToast()
 
 	const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -45,6 +47,9 @@ const LlmVisibilityScreen = () => {
 				setError(data.error || 'Could not run LLM visibility check.')
 			} else {
 				setResult(data)
+				push(
+					`LLM visibility check complete (${data.mentionedCount}/${data.configuredCount || 3} mentioned).`
+				)
 			}
 		} catch (err) {
 			setError((err as Error).message || 'Network error while checking LLM visibility.')
@@ -113,7 +118,14 @@ const LlmVisibilityScreen = () => {
 				</p>
 			)}
 
-			{result ? (
+			{pending ? (
+				<div className="skeleton-card" aria-label="Loading LLM visibility results">
+					<div className="skeleton-line" style={{ width: '42%' }} />
+					<div className="skeleton-line" style={{ width: '92%' }} />
+					<div className="skeleton-line" style={{ width: '78%' }} />
+					<div className="skeleton-line" style={{ width: '85%' }} />
+				</div>
+			) : result ? (
 				<div className="preview-result" aria-busy={pending}>
 					<div className="preview-result-head">
 						<span className="preview-result-page">
@@ -188,6 +200,7 @@ const LlmVisibilityScreen = () => {
 					</EmptyState>
 				)
 			)}
+			<ToastContainer toasts={toasts} onDismiss={dismiss} />
 		</div>
 	)
 }
