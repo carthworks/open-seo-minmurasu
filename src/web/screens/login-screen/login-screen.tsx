@@ -4,6 +4,7 @@ import { memo, useState, type SubmitEvent } from 'react'
 import { Button } from '@web/components/button'
 import { Icon } from '@web/components/icon'
 import { PageHeader } from '@web/components/page-header'
+import { playError, playSuccess } from '@web/lib/sound'
 import type { LoginScreenProps } from './login-screen.types'
 
 /** In-app password sign-in screen for protected admin pages (/leads, /history, /settings). */
@@ -27,15 +28,18 @@ const LoginScreen = (props: LoginScreenProps) => {
 			})
 			const data = (await res.json().catch(() => ({}))) as { error?: string }
 			if (!res.ok) {
+				playError()
 				setError(data.error || 'Incorrect password.')
 				setPending(false)
 
 				return
 			}
+			playSuccess()
 			const safeNext =
 				nextPath.startsWith('/') && !nextPath.startsWith('//') ? nextPath : '/leads'
 			window.location.assign(safeNext)
 		} catch {
+			playError()
 			setError('Could not verify password. Please try again.')
 			setPending(false)
 		}

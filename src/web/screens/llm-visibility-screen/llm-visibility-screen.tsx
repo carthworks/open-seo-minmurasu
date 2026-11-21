@@ -7,6 +7,7 @@ import { Icon } from '@web/components/icon'
 import { PageHeader } from '@web/components/page-header'
 import { StatusMark } from '@web/components/status-mark'
 import { ToastContainer, useToast } from '@web/components/toast'
+import { playClick, playError, playSuccess } from '@web/lib/sound'
 import type { LlmProviderResult, LlmVisibilityResult, Status } from '@shared/types'
 
 function statusToTone(status: LlmProviderResult['status']): Status {
@@ -32,6 +33,7 @@ const LlmVisibilityScreen = () => {
 		if (!brand.trim() || pending) return
 		setPending(true)
 		setError(null)
+		playClick()
 		try {
 			const res = await fetch('/api/llm-visibility', {
 				method: 'POST',
@@ -44,14 +46,17 @@ const LlmVisibilityScreen = () => {
 			})
 			const data = (await res.json()) as LlmVisibilityResult & { error?: string }
 			if (!res.ok) {
+				playError()
 				setError(data.error || 'Could not run LLM visibility check.')
 			} else {
+				playSuccess()
 				setResult(data)
 				push(
 					`LLM visibility check complete (${data.mentionedCount}/${data.configuredCount || 3} mentioned).`
 				)
 			}
 		} catch (err) {
+			playError()
 			setError((err as Error).message || 'Network error while checking LLM visibility.')
 		} finally {
 			setPending(false)

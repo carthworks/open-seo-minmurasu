@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import type { AuditDeliveryChannel, AuditProgress, ClientLeadDetails } from '@shared/types'
 import { AuditProgressView } from '@web/components/audit-progress-view'
 import { Icon } from '@web/components/icon'
+import { playClick, playError, playSuccess } from '@web/lib/sound'
 import { postForEvents } from '@web/lib/stream'
 import type { AuditFormProps } from './audit-form.types'
 
@@ -47,6 +48,7 @@ const AuditForm = (props: AuditFormProps) => {
 		e.preventDefault()
 		if (running) return
 		if (!fullName.trim() || !phone.trim() || !email.trim() || !url.trim()) {
+			playError()
 			setError('Please enter your Name, Phone, Email, and Website URL.')
 
 			return
@@ -64,11 +66,15 @@ const AuditForm = (props: AuditFormProps) => {
 		}
 
 		setError(null)
+		playClick()
 		setProgress({ step: 'start', label: 'Starting the audit', pct: 1 })
 		await postForEvents('/api/audit', { url: url.trim(), source: 'web', client }, (event) => {
 			if (event.type === 'progress') setProgress(event)
-			else if (event.type === 'done') router.push(`/report/${event.id}`)
-			else {
+			else if (event.type === 'done') {
+				playSuccess()
+				router.push(`/report/${event.id}`)
+			} else {
+				playError()
 				setError(event.message)
 				setProgress(null)
 			}
