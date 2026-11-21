@@ -15,7 +15,10 @@ const AppShell = (props: AppShellProps) => {
 	const { children, brandName, brandLogo } = props
 
 	const pathname = usePathname()
-	const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+	const [collapsed, setCollapsed] = useState<Record<string, boolean>>({
+		Agency: true,
+		Workspace: true
+	})
 
 	const toggleGroup = (title: string) => {
 		setCollapsed((prev) => ({ ...prev, [title]: !prev[title] }))

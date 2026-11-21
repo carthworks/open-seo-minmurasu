@@ -13,17 +13,39 @@ const HomeScreen = (props: HomeScreenProps) => {
 	return (
 		<div className="home">
 			<section className="home-hero">
-				<span className="eyebrow">
-					Murasu Score · Free SEO &amp; AI Search Audit by {brandName} · 12 Areas · 90 Checks
-				</span>
-				<h1>
-					Check your <span className="highlight">Murasu Score</span>
-				</h1>
-				<p className="home-lede">
-					Free SEO &amp; AI Search Audit by {brandName} (Drumbeat SEO). Grade on-page SEO,
-					speed, links, usability, security, AI search, local SEO, accessibility, trust
-					&amp; E-E-A-T, analytics &amp; tracking, and CRO &amp; lead capture.
-				</p>
+				<div className="home-hero-copy">
+					<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+						<img
+							src="/brand/min-murasu-logo.png"
+							alt={brandName}
+							width={40}
+							height={40}
+							style={{
+								borderRadius: 10,
+								background: '#fff',
+								padding: 4,
+								border: '1px solid var(--line)',
+								objectFit: 'contain'
+							}}
+						/>
+						<span className="eyebrow">
+							Murasu Score · By {brandName}
+						</span>
+					</div>
+					<h1>
+						Check your <span className="highlight">Murasu Score</span>
+					</h1>
+					<p className="home-lede">
+						Free SEO &amp; AI Search Audit by {brandName} (Drumbeat SEO). Grade 12
+						areas — technical SEO, speed, security, AI search, analytics, and CRO &amp;
+						lead capture.
+					</p>
+					<div className="home-hero-pills">
+						<span className="chip">12 Areas · 90 Checks</span>
+						<span className="chip">Branded PDF Export</span>
+						<span className="chip">AI &amp; CRO Ready</span>
+					</div>
+				</div>
 				<AuditForm pagespeedEnabled={pagespeedEnabled} brandName={brandName} />
 			</section>
 

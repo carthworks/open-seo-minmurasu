@@ -7,7 +7,10 @@ const AppLayout = async (props: LayoutProps<'/'>) => {
 	const settings = await getSettings()
 
 	return (
-		<AppShell brandName={settings.brandName} brandLogo={settings.brandLogo || undefined}>
+		<AppShell
+			brandName={settings.brandName}
+			brandLogo={settings.brandLogo || '/brand/min-murasu-logo.png'}
+		>
 			{children}
 		</AppShell>
 	)

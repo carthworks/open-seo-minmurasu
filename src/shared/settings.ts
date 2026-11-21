@@ -80,7 +80,7 @@ export type PublicSettings = Omit<Settings, SecretSetting> & {
 	storageMode?: 'redis' | 'local'
 }
 
-export const DEFAULT_BRAND_COLOR = '#c8f135'
+export const DEFAULT_BRAND_COLOR = '#f28c28'
 
 export const THEME_SETTINGS: ThemeSetting[] = ['light', 'dark', 'system']
 

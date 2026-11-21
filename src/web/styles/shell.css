@@ -14,7 +14,7 @@
 	display: flex;
 	flex-direction: column;
 	height: calc(100vh - 28px);
-	padding: 16px 12px 12px;
+	padding: 12px 10px 10px;
 	border: 1px solid var(--line);
 	border-radius: var(--radius-xl);
 	background: var(--surface-2);
@@ -22,7 +22,7 @@
 
 .sidebar-brand {
 	display: flex;
-	padding: 4px 8px 18px;
+	padding: 2px 8px 10px;
 	text-decoration: none;
 	transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -45,7 +45,7 @@
 	overflow-y: auto;
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	gap: 8px;
 	padding-right: 2px;
 	scrollbar-width: thin;
 }
@@ -53,7 +53,7 @@
 .sidebar-group {
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
+	gap: 1px;
 }
 
 .sidebar-group-toggle {
@@ -81,11 +81,12 @@
 	position: relative;
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	height: 34px;
+	gap: 9px;
+	height: 29px;
 	padding: 0 10px;
 	border-radius: var(--radius-md);
 	color: var(--ink-2);
+	font-size: 13px;
 	font-weight: 550;
 	text-decoration: none;
 	transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),

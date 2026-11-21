@@ -53,7 +53,7 @@ const JSON_ONLY = /^\/api\/(monitors|alerts|mcp)(\/|$)/
 
 function buildCsp(nonce: string): string {
 	const isDev = process.env.NODE_ENV !== 'production'
-	const scriptSrc = `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`
+	const scriptSrc = `script-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-eval'" : ''}`
 
 	return [
 		"default-src 'self'",
@@ -119,5 +119,5 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-	matcher: ['/((?!_next/|favicon.ico|icon.svg).*)']
+	matcher: ['/((?!_next/|brand/|favicon.ico|icon.svg|robots.txt|sitemap.xml).*)']
 }

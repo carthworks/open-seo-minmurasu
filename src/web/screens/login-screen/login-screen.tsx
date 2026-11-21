@@ -67,7 +67,7 @@ const LoginScreen = (props: LoginScreenProps) => {
 					</p>
 				)}
 				<div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}>
-					<Button type="submit" variant="primary" disabled={!password || pending}>
+					<Button type="submit" variant="primary" disabled={pending}>
 						{pending ? 'Signing in…' : 'Continue'}
 					</Button>
 				</div>

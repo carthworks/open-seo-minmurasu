@@ -26,9 +26,12 @@
 	--ink-3: light-dark(#697386, #8691a5);
 
 	/* The brand accent. White-label settings override --accent and --on-accent. */
-	--accent: #c8f135;
-	--on-accent: #0b1220;
-	--accent-soft: color-mix(in oklab, var(--accent) 24%, transparent);
+	--brand-navy: #0d2444;
+	--brand-orange: #f28c28;
+	--brand-blue: #0b71a8;
+	--accent: #f28c28;
+	--on-accent: #ffffff;
+	--accent-soft: color-mix(in oklab, var(--accent) 22%, transparent);
 
 	--primary: light-dark(#0b1220, #eef1f6);
 	--on-primary: light-dark(#ffffff, #0b1220);

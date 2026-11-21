@@ -14,39 +14,70 @@
 .home {
 	display: flex;
 	flex-direction: column;
-	gap: 56px;
-	max-width: 980px;
+	gap: 48px;
+	max-width: 1120px;
 	margin: 0 auto;
 }
 
 .home-hero {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+	align-items: center;
+	gap: 36px;
+	padding-top: clamp(8px, 2.5vw, 24px);
+	text-align: left;
+}
+
+.home-hero-copy {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
-	gap: 18px;
-	padding-top: clamp(8px, 4vw, 40px);
-	text-align: center;
+	align-items: flex-start;
+	gap: 14px;
+}
+
+.home-hero-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 4px;
 }
 
 .home-hero .eyebrow {
+	color: var(--brand-blue);
 	animation: homeFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .home-hero h1 {
-	max-width: 760px;
-	font-size: clamp(36px, 6vw, 64px);
+	max-width: 520px;
+	font-size: clamp(34px, 4.4vw, 54px);
 	font-weight: 700;
-	letter-spacing: -0.045em;
-	line-height: 1.02;
+	letter-spacing: -0.04em;
+	line-height: 1.04;
 	animation: homeFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
 }
 
 .home-lede {
-	max-width: 560px;
+	max-width: 480px;
 	color: var(--ink-2);
-	font-size: 17px;
+	font-size: 16px;
 	line-height: 1.55;
 	animation: homeFadeUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.14s both;
+}
+
+@media (max-width: 960px) {
+	.home-hero {
+		grid-template-columns: 1fr;
+		gap: 24px;
+		text-align: center;
+	}
+
+	.home-hero-copy {
+		align-items: center;
+	}
+
+	.home-hero-pills {
+		justify-content: center;
+	}
 }
 
 .composer {
