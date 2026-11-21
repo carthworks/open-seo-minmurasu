@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { ADMIN_COOKIE_NAME, verifyAdminToken } from '@shared/auth'
 
 /**
  * Pages and endpoints anyone may use: the audit and preview tools, and shared reports and
@@ -6,6 +7,7 @@ import { NextResponse, type NextRequest } from 'next/server'
  */
 const PUBLIC_PAGES = new Set([
 	'/',
+	'/login',
 	'/preview',
 	'/analytics',
 	'/cro',
@@ -27,7 +29,13 @@ function isPublic(request: NextRequest): boolean {
 	if (PUBLIC_PAGES.has(pathname) || pathname.startsWith('/report/')) {
 		return true
 	}
-	if (pathname === '/api/audit' || pathname === '/api/preview' || pathname === '/api/llm-visibility') {
+	if (
+		pathname === '/api/audit' ||
+		pathname === '/api/preview' ||
+		pathname === '/api/llm-visibility' ||
+		pathname === '/api/auth/login' ||
+		pathname === '/api/auth/logout'
+	) {
 		return true
 	}
 
@@ -74,10 +82,10 @@ function nextWithCsp(request: NextRequest): NextResponse {
 }
 
 /**
- * With ADMIN_PASSWORD set, history, crawls and settings ask for a password (user "admin").
+ * With ADMIN_PASSWORD set, leads, history, crawls and settings ask for the password via `/login`.
  * Without it everything is open, which is fine on your own computer.
  */
-export function proxy(request: NextRequest): NextResponse {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
 	const json = request.headers.get('content-type')?.includes('application/json')
 	if (request.method === 'POST' && JSON_ONLY.test(request.nextUrl.pathname) && !json) {
 		return NextResponse.json(
@@ -87,16 +95,27 @@ export function proxy(request: NextRequest): NextResponse {
 	}
 	const password = process.env.ADMIN_PASSWORD
 	if (!password || isPublic(request)) return nextWithCsp(request)
+
+	const sessionToken = request.cookies.get(ADMIN_COOKIE_NAME)?.value
+	if (await verifyAdminToken(sessionToken, password)) {
+		return nextWithCsp(request)
+	}
+
 	const header = request.headers.get('authorization') ?? ''
 	const [scheme, encoded] = header.split(' ')
 	if (scheme === 'Basic' && encoded && atob(encoded) === `admin:${password}`) {
 		return nextWithCsp(request)
 	}
 
-	return new NextResponse('Sign in to manage OpenSEO.', {
-		status: 401,
-		headers: { 'www-authenticate': 'Basic realm="OpenSEO admin", charset="UTF-8"' }
-	})
+	if (request.nextUrl.pathname.startsWith('/api/')) {
+		return NextResponse.json({ error: 'Admin sign-in required.' }, { status: 401 })
+	}
+
+	const loginUrl = request.nextUrl.clone()
+	loginUrl.pathname = '/login'
+	loginUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`)
+
+	return NextResponse.redirect(loginUrl)
 }
 
 export const config = {
